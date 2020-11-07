@@ -1,10 +1,10 @@
-﻿using System;
-using Google.OrTools.Graph;
+﻿using Google.OrTools.Graph;
+using System;
 
 
 namespace MinCostMaxFlow
 {
-    class Program
+    class ProgramMinCostMaxFlowExample
     {
         private static void SolveMinCostFlow()
         {
@@ -14,16 +14,20 @@ namespace MinCostMaxFlow
             // Problem taken From Taha's 'Introduction to Operations Research',
             // example 6.4-2.
 
-            int numNodes = 5;
-            int numArcs = 9;
-            int[] startNodes = { 0, 0, 1, 1, 1, 2, 2, 3, 4 };
-            int[] endNodes = { 1, 2, 2, 3, 4, 3, 4, 4, 2 };
-            int[] capacities = { 15, 8, 20, 4, 10, 15, 4, 20, 5 };
-            int[] unitCosts = { 4, 4, 2, 2, 6, 1, 3, 2, 3 };
+            int numNodes = 29;
+            int numArcs = 49;
+            //int[] startNodes1 = { 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 40, 50, 60, 70, 80, 90, 1, 15, 3, 17, 5, 19, 8, 15, 10, 17, 12, 19, 15, 40, 17, 60, 19, 80, 40, 50, 60, 70, 80, 90, 100 };
+            int[] startNodes =  { 0, 1, 2, 3, 4, 5, 7, 8,  9,  10, 11,  12, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 0, 14, 2  , 16, 4, 18,  7, 14, 9, 16 , 11, 18, 14, 21, 16, 23, 18, 25, 21, 22, 23, 24, 25, 26, 27 };
+            
+            //int[] endNodes1 = { 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 30, 50, 60, 70, 80, 90, 100, 16, 2, 18, 4, 20, 6, 16, 9, 18, 11, 20, 13, 50, 16, 70, 18, 90, 20, 200, 200, 200, 200, 200, 200, 200 };
+            int[] endNodes = {    1, 2, 3, 4, 5, 6, 8, 9,  10, 11, 12, 13, 15, 16, 17,  18, 19, 20, 22, 23, 24, 25, 26, 27, 15, 1, 17 , 3, 19, 5,  15, 8, 17, 10,  19, 12, 22, 15, 24, 17, 26, 19, 28, 28, 28, 28, 28, 28, 28 };
+
+            int[] unitCosts = {   1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
+            int[] capacities = {  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 };
 
             // Define an array of supplies at each node.
 
-            int[] supplies = { 20, 0, 0, -5, -15 };
+            int[] supplies = { 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2 };
 
 
 
