@@ -338,12 +338,12 @@ namespace CPF_experiment
 
             if (runGrids == true)
             {
-                int[] gridSizes = new int[] { 100 };     // Map size 8x8, 16x16 ...
+                int[] gridSizes = new int[] { 50 };     // Map size 8x8, 16x16 ...
 
                 int[] agentListSizes = new int[] { 10 };  // Number of agents
 
 
-                int[] obstaclesPercents = new int[] { 50 };   // Randomly allocatade obstacles percents
+                int[] obstaclesPercents = new int[] { 10 };   // Randomly allocatade obstacles percents
                 me.RunExperimentSet(gridSizes, agentListSizes, obstaclesPercents, instances);
             }
             else if (runDragonAge == true)

@@ -8,7 +8,7 @@ namespace CPF_experiment
 {
     class OGAM_Run
     {
-        public long solve(MAM_ProblemInstance instance, Move goalstate)
+        public static long solve(MAM_ProblemInstance instance, Move goalstate)
         {
             CFMAM_MCMF_Reducer reducer = new CFMAM_MCMF_Reducer(instance, goalstate);
             reducer.reduce();

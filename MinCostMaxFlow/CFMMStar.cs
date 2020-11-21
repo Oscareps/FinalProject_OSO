@@ -9,7 +9,7 @@ namespace CPF_experiment
     /// <summary>
     /// Merges agents if they conflict more times than the given threshold in the CT nodes from the root to the current CT nodes only.
     /// </summary>
-    public class MMStarCFMAM : MAM_ISolver
+    public class CFMMStar : MAM_ISolver
     {
         public enum CostFunction { MakeSpan, SOC };
         public CostFunction costFunction;
@@ -46,7 +46,7 @@ namespace CPF_experiment
 
 
 
-        public MMStarCFMAM
+        public CFMMStar
         (
             CostFunction costFunction = CostFunction.SOC
         )
@@ -94,7 +94,6 @@ namespace CPF_experiment
             // caculate lowest centrality 
             MAM_AgentState agent = getLowestCentralityAgent();
             openList.Add(agent);
-            AddSubSetHeuristics();
           
         }
 
@@ -132,7 +131,6 @@ namespace CPF_experiment
             HashSet<MMStarConstraint> constraints
         )
         {
-            this.constraints = constraints;
         }
 
         private void CalculateH
@@ -144,28 +142,6 @@ namespace CPF_experiment
             state.h = 0;
             if (hCalculatorList[0][0] is ZeroHCalculator)
                 return;
-            if (costFunction == CostFunction.MakeSpan)
-            {
-                for (int heuristicCalculatorIndex = 0; heuristicCalculatorIndex < hCalculatorList[state.agentIndex].Count; heuristicCalculatorIndex++)
-                {
-                    MAM_HeuristicCalculator heuristicCalculator = hCalculatorList[state.agentIndex][heuristicCalculatorIndex];
-                    MAM_AgentState newState = new MAM_AgentState(state);
-                    MAM_AgentState newPrevState = null;
-                    if (prev != null)
-                    {
-                        newPrevState = new MAM_AgentState(prev);
-                        newPrevState.h = prev.heuristics[heuristicCalculatorIndex];
-                    }
-                    state.heuristics.Add(heuristicCalculator.h(newState, newPrevState));
-                    double makespan1 = (state.h + state.g) / state.numOfAgentsInBestHeuristic;
-                    double makespan2 = (state.heuristics[heuristicCalculatorIndex] + state.g) / heuristicCalculator.GetNumberOfAgents();
-                    if (makespan1 < makespan2)
-                    {
-                        state.h = state.heuristics[heuristicCalculatorIndex];
-                        state.numOfAgentsInBestHeuristic = heuristicCalculator.GetNumberOfAgents();
-                    }
-                }
-            }
             else if (costFunction == CostFunction.SOC)
             {
                 state.h = hCalculatorList[0][0].h(state, prev);
@@ -177,21 +153,7 @@ namespace CPF_experiment
             MAM_AgentState state
         )
         {
-            if (costFunction == CostFunction.MakeSpan)
-            {
-                if (hCalculatorList[0][0].GetName() == "LP H")
-                {
-                    state.f = state.g + state.h;
-                }
-                else
-                {
-                    double soc = state.g + state.h;
-                    state.f = Math.Max(state.g, soc / state.numOfAgentsInBestHeuristic);
-                    if (state.prev != null && state.prev.f > state.f)
-                        state.f = state.prev.f;
-                }
-            }
-            else if (costFunction == CostFunction.SOC)
+            if (costFunction == CostFunction.SOC)
             {
                 state.f = state.g + state.h;
                 if (state.prev != null)
@@ -206,35 +168,6 @@ namespace CPF_experiment
         )
         {
             this.Setup(problemInstance, 0, runner);
-        }
-
-        public void AddSubSetHeuristics()
-        {
-            MAM_HeuristicCalculator hCalculator = hCalculatorList[0][0];
-            hCalculatorList = new List<List<MAM_HeuristicCalculator>>();
-
-            foreach (MAM_AgentState agent in this.instance.m_vAgents)
-            {
-                agent.numOfAgentsInBestHeuristic = hCalculator.GetNumberOfAgents();
-
-                this.hCalculatorList.Add(new List<MAM_HeuristicCalculator>());
-                this.hCalculatorList[agent.agentIndex].Add(hCalculator);
-
-                if (costFunction == CostFunction.SOC || hCalculator is ZeroHCalculator)
-                    continue;
-                foreach (MAM_AgentState agent2 in this.instance.m_vAgents)      // set all pairs of agents (for makespan heurisic)
-                {
-                    if (agent == agent2)
-                        continue;
-                    MAM_HeuristicCalculator newHeuristicCalculator = hCalculator.copyHeuristicCalculator();
-                    MAM_AgentState[] agentStartStates = new MAM_AgentState[2];
-                    agentStartStates[0] = agent;
-                    agentStartStates[1] = agent2;
-                    MAM_ProblemInstance subProblem = instance.CreateSubProblem(agentStartStates);
-                    newHeuristicCalculator.init(subProblem);
-                    this.hCalculatorList[agent.agentIndex].Add(newHeuristicCalculator);
-                }
-            }
         }
 
         public void SetHeuristic
@@ -286,7 +219,7 @@ namespace CPF_experiment
 
         public virtual string GetName()
         {
-            return "MM_Star";
+            return "CFMM_Star";
         }
 
         public override string ToString()
@@ -368,19 +301,20 @@ namespace CPF_experiment
                 }
 
                 var currentNode = removeFromOpen();
-                if (currentNode.h >= Double.MaxValue)
-                    continue;
-                if (currentNode.f >= getBestCost() ||
-                    (isEmpty() && meetFlag)) // Goal test
+
+                if (currentNode.f >= getBestCost() || isEmpty()) // Goal test
                 {
                     success = true;
                     Console.WriteLine("Meeting point found! In: " + bestCostLocation);
+                    
+                    // TODO: ToString in OGAM solution
                     GetPlan().ToString();  // Print plan
+
                     this.Clear(); // Goal found - we're not going to resume this search
                     return true;
                 }
+                
                 // Expand
-                //Console.WriteLine("Expand node:" + currentNode);   // Print expansions
                 bool expanded = Expand(currentNode);
                 nodesExpanded++;
 
@@ -441,9 +375,7 @@ namespace CPF_experiment
 
         private int getBestCost()
         {
-            if (costFunction == CostFunction.MakeSpan)
-                return bestMakeSpanCost;
-            else if (costFunction == CostFunction.SOC)
+            if (costFunction == CostFunction.SOC)
                 return bestSOCCost;
             return 0;
         }
@@ -453,32 +385,10 @@ namespace CPF_experiment
             MAM_AgentState currentNode
         )
         {
-            int makeSpanCost = 0;
-            int SOCCost = 0;
-            //Move move = (Move)currentNode.lastMove;
             Move move = new Move(currentNode.lastMove);
-            if (closedList[move].Count != instance.m_vAgents.Length)
-            {
-                return;
-            }
-            meetFlag = true;
-            for (int agentIndex = 0; agentIndex < instance.m_vAgents.Length; agentIndex++)
-            {
-                int currentStateTime = closedList[move][agentIndex].Keys.Min();
-                makeSpanCost = Math.Max(makeSpanCost, currentStateTime);
-                SOCCost += currentStateTime;
-            }
-            int cost = 0;
-            if (costFunction == CostFunction.MakeSpan)
-                cost = makeSpanCost;
-            else if (costFunction == CostFunction.SOC)
-                cost = SOCCost;
-            if (cost < getBestCost())
-            {
-                bestMakeSpanCost = makeSpanCost;
-                bestSOCCost = SOCCost;
-                bestCostLocation = move;
-            }
+            long nodeCost = OGAM_Run.solve(this.GetProblemInstance(), move);
+            if (nodeCost < this.getBestCost())
+                this.bestSOCCost = (int)nodeCost;
         }
 
         private bool Expand
@@ -486,9 +396,8 @@ namespace CPF_experiment
             MAM_AgentState node
         )
         {
-            MMStarConstraint queryConstraint = new MMStarConstraint(node.agentIndex, node.lastMove.x, node.lastMove.y, node.lastMove.direction, node.lastMove.time);
-            if (constraints.Contains(queryConstraint))
-                return false;
+            UpdateBestCost(node);
+
             if (expandedNodes.Contains(node))
             {
                 nodesExpanded--;
@@ -531,7 +440,7 @@ namespace CPF_experiment
                 }
                 CalculateF(child);
                 openList.Add(child);
-                UpdateBestCost(child);
+
                 nodesGenerated++;
             }
         }
@@ -539,6 +448,7 @@ namespace CPF_experiment
 
         public virtual MAM_Plan GetPlan()
         {
+            // TODO: Get CFMAM plan
             if (this.solution == null)
             {
                 if (bestCostLocation == null)
@@ -558,6 +468,7 @@ namespace CPF_experiment
 
         public int GetSolutionDepth()
         {
+            // Not necessary
             return this.solutionDepth;
         }
 
