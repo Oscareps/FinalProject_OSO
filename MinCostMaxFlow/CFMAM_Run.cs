@@ -105,30 +105,30 @@ namespace CPF_experiment
 
             // Median Heuristic
             //ISolver
-            MAM_ISolver MMStar_MedianH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
+            CFMAM_ISolver CFMMStar_MedianH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator MedianHCalculator = new MedianHCalculator();
-            MMStar_MedianH_SOC.SetHeuristic(MedianHCalculator);
+            CFMMStar_MedianH_SOC.SetHeuristic(MedianHCalculator);
 
             // Clique Heuristic
 
             //ISolver
-            MAM_ISolver MMStar_CliqueH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
+            CFMAM_ISolver CFMMStar_CliqueH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator CliqueHeuristic = new CliqueHCalculator();
-            MMStar_CliqueH_SOC.SetHeuristic(CliqueHeuristic);
+            CFMMStar_CliqueH_SOC.SetHeuristic(CliqueHeuristic);
 
 
             // No Heuristic
 
             //ISolver
-            MAM_ISolver MMStar_ZeroeH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
+            CFMAM_ISolver CFMMStar_ZeroeH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator ZeroHeuristic = new ZeroHCalculator();
-            MMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
+            CFMMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
 
             // *****  SOC Solvers  *****
-            //solvers.Add(MMStar_FastMapH_SOC);
-            solvers.Add(MMStar_MedianH_SOC);
-            //solvers.Add(MMStar_CliqueH_SOC);
-            //solvers.Add(MMStar_ZeroeH_SOC);
+            //solvers.Add(CFMMStar_FastMapH_SOC);
+            solvers.Add(CFMMStar_MedianH_SOC);
+            //solvers.Add(CFMMStar_CliqueH_SOC);
+            //solvers.Add(CFMMStar_ZeroeH_SOC);
 
 
             outOfTimeCounters = new int[solvers.Count];
@@ -369,7 +369,7 @@ namespace CPF_experiment
         /// <param name="instance">The problem instance that will be solved</param>
         private void run
         (
-            MAM_ISolver solver,
+            CFMAM_ISolver solver,
             MAM_ProblemInstance instance
         )
         {
@@ -462,7 +462,7 @@ namespace CPF_experiment
         public void WriteGivenProblem
         (
             MAM_ProblemInstance instance,
-            MAM_ISolver solver,
+            CFMAM_ISolver solver,
             MAM_Plan currentPlan = null)
         {
             string initialH = 0.ToString();
