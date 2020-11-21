@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1300
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CF-MAM", "MinCostMaxFlow\CF-MAM.csproj", "{C72A0AF3-CA8E-4183-A3FA-2C7CD8EE0002}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C72A0AF3-CA8E-4183-A3FA-2C7CD8EE0002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C72A0AF3-CA8E-4183-A3FA-2C7CD8EE0002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C72A0AF3-CA8E-4183-A3FA-2C7CD8EE0002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C72A0AF3-CA8E-4183-A3FA-2C7CD8EE0002}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {286606C7-6E45-40DD-BF00-D48E0A71FC67}
+	EndGlobalSection
+EndGlobal
