@@ -9,12 +9,12 @@ namespace CPF_experiment
     /// <summary>
     /// Merges agents if they conflict more times than the given threshold in the CT nodes from the root to the current CT nodes only.
     /// </summary>
-    public class CFMMStar : MAM_ISolver
+    public class CFMMStar : CFMAM_ISolver
     {
         public enum CostFunction { MakeSpan, SOC };
         public CostFunction costFunction;
         protected MAM_ProblemInstance instance;
-        public MAM_OpenList openList;
+        public CFMAM_OpenList openList;
         public HashSet<MMStarConstraint> constraints;
         public HashSet<IBinaryHeapItem> expandedNodes;
         /// <summary>
@@ -29,7 +29,7 @@ namespace CPF_experiment
 
         public int totalCost;
         protected int solutionDepth;
-        public MAM_Run runner;
+        public CFMAM_Run runner;
         protected Move goalLocation;
         protected MAM_Plan solution;
         private int bestMakeSpanCost; // The best makespan and soc of the best location
@@ -67,7 +67,7 @@ namespace CPF_experiment
         (
             MAM_ProblemInstance problemInstance,
             int minDepth,
-            MAM_Run runner,
+            CFMAM_Run runner,
             int minCost = -1,
             HashSet<MMStarConstraint> constraints = null
         )
@@ -85,7 +85,7 @@ namespace CPF_experiment
             this.bestCostLocation = null;
             this.meetFlag = false;
             this.success = false;
-            this.openList = new MAM_OpenList(this);
+            this.openList = new CFMAM_OpenList(this);
             if (constraints != null)
                 this.constraints = constraints;
             else
@@ -164,7 +164,7 @@ namespace CPF_experiment
         public virtual void Setup
         (
             MAM_ProblemInstance problemInstance,
-            MAM_Run runner
+            CFMAM_Run runner
         )
         {
             this.Setup(problemInstance, 0, runner);
@@ -488,9 +488,9 @@ namespace CPF_experiment
             return nodesGenerated;
         }
 
-        public MAM_Run.CostFunction GetCostFunction()
+        public CFMAM_Run.CostFunction GetCostFunction()
         {
-            return (MAM_Run.CostFunction)costFunction;
+            return (CFMAM_Run.CostFunction)costFunction;
         }
 
 

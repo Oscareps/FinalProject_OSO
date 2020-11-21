@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CPF_experiment
 {
-    class CFMAM_Run
+    public class CFMAM_Run
     {
         ////////debug
         // public static TextWriter resultsWriterdd;
@@ -406,7 +406,7 @@ namespace CPF_experiment
         private void PrintStatistics
         (
             MAM_ProblemInstance instance,
-            MAM_ISolver solver,
+            CFMAM_ISolver solver,
             double runtimeInMillis
         )
         {
@@ -428,7 +428,7 @@ namespace CPF_experiment
 
         private void PrintNullStatistics
         (
-            MAM_ISolver solver
+            CFMAM_ISolver solver
         )
         {
             // Success col:
