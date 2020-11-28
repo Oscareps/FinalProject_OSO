@@ -4,8 +4,11 @@ namespace CPF_experiment
     class Constants
     {
 
-        public static int MAX_TIME = 300000;
-        //public static int MAX_TIME = int.MaxValue;
+        //public static int MAX_TIME = 600000;
+        public static int MAX_TIME = int.MaxValue;
+
+        public static long MCMF_MAX_TIME = 50000;
+        
         /// <summary>
         /// The cost that is set to the algorithms when all the states have been expanded and no goal was found 
         /// </summary>
@@ -36,6 +39,9 @@ namespace CPF_experiment
         public static bool EXHAUSTIVE_ICTS = false;
 
         public const bool ALLOW_DIAGONAL_MOVE = false;
+
+        public const bool ALLOW_WAIT_MOVE = false;
+
         public static readonly int NUM_ALLOWED_DIRECTIONS = ALLOW_DIAGONAL_MOVE ? Move.NUM_DIRECTIONS : Move.NUM_NON_DIAG_MOVES;
 
         public enum ProblemVariant : byte

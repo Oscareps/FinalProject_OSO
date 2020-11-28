@@ -69,7 +69,7 @@ namespace CPF_experiment
 
             MAM_ProblemInstance instance;
             string instanceName;
-            MAM_Run runner = new MAM_Run();
+            CFMAM_Run runner = new CFMAM_Run();
 
             bool resultsFileExisted = File.Exists(RESULTS_FILE_NAME);
             runner.OpenResultsFile(RESULTS_FILE_NAME);
@@ -135,7 +135,17 @@ namespace CPF_experiment
                                 instance.Export(instanceName);
                             }
                             instance.fileName = instanceName;
-                            runner.SolveGivenProblem(instance);
+
+                            try
+                            {
+                                runner.SolveGivenProblem(instance);
+                            }
+                            catch(TimeoutException e)
+                            {
+                                Console.Out.WriteLine(e.Message);
+                                Console.Out.WriteLine();
+                                continue;
+                            }
 
                             // Save the latest problem
                             try
@@ -289,7 +299,7 @@ namespace CPF_experiment
             CFMAM_Program me = new CFMAM_Program();
             CFMAM_Program.RESULTS_FILE_NAME = Process.GetCurrentProcess().ProcessName + ".csv";
             TextWriterTraceListener tr1 = new TextWriterTraceListener(System.Console.Out);
-            Debug.Listeners.Add(tr1);
+            Trace.Listeners.Add(tr1);
 
 
             if (Directory.Exists(Directory.GetCurrentDirectory() + "\\Instances") == false)
@@ -302,15 +312,15 @@ namespace CPF_experiment
             int instances = 10;
 
             bool runDragonAge = false;
-            bool runGrids = false;
+            bool runGrids = true;
             bool runMazesWidth1 = false;
-            bool runSpecific = true;
+            bool runSpecific = false;
 
             if (runGrids == true)
             {
-                int[] gridSizes = new int[] { 500 };     // Map size 8x8, 16x16 ...
+                int[] gridSizes = new int[] { 30 };     // Map size 8x8, 16x16 ...
 
-                int[] agentListSizes = new int[] { 10 };  // Number of agents
+                int[] agentListSizes = new int[] { 3 };  // Number of agents
 
 
                 int[] obstaclesPercents = new int[] { 10 };   // Randomly allocatade obstacles percents
@@ -324,7 +334,7 @@ namespace CPF_experiment
             {
 
                 Console.WriteLine();
-                me.RunInstance("test");
+                me.RunInstance("Instance-5-10-3-1");
             }
             Console.WriteLine("*********************THE END**************************");
             Console.ReadLine();

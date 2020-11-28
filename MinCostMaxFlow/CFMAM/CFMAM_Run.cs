@@ -19,7 +19,7 @@ namespace CPF_experiment
         /// 
         public enum CostFunction { MakeSpan, SOC };
 
-        public static bool toPrint = false;
+        public static bool toPrint = true;
 
         public static readonly string RESULTS_DELIMITER = ",";
 
@@ -126,8 +126,8 @@ namespace CPF_experiment
 
             // *****  SOC Solvers  *****
             //solvers.Add(CFMMStar_FastMapH_SOC);
-            solvers.Add(CFMMStar_MedianH_SOC);
-            //solvers.Add(CFMMStar_CliqueH_SOC);
+            //solvers.Add(CFMMStar_MedianH_SOC);
+            solvers.Add(CFMMStar_CliqueH_SOC);
             //solvers.Add(CFMMStar_ZeroeH_SOC);
 
 
@@ -332,14 +332,14 @@ namespace CPF_experiment
 
                     solutionCost = solvers[i].GetSolutionSOCCost();
 
-                    MAM_Plan plan = null;
+                    String plan = null;
                     if (solvers[i].IsSolved()) // Solved successfully
                     {
                         plan = solvers[i].GetPlan();
                         if (toPrint)
                         {
                             Console.WriteLine();
-                            plan.ToString();
+                            Console.WriteLine(plan);
                             Console.WriteLine();
                         }
                         outOfTimeCounters[i] = 0;
@@ -383,7 +383,6 @@ namespace CPF_experiment
             elapsedTime = this.ElapsedMilliseconds();
             if (solved)
             {
-                Console.WriteLine("Total MakeSpan cost: {0}", solver.GetSolutionMakeSpanCost());
                 Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionSOCCost());
             }
             else
@@ -463,7 +462,7 @@ namespace CPF_experiment
         (
             MAM_ProblemInstance instance,
             CFMAM_ISolver solver,
-            MAM_Plan currentPlan = null)
+            String currentPlan = null)
         {
             string initialH = 0.ToString();
             if (solver.GetCostFunction() == CostFunction.SOC)
@@ -504,6 +503,52 @@ namespace CPF_experiment
             return "NULL";
         }
 
+        public void PrintResultsFileHeader()
+        {
+            this.resultsWriter.Write("Grid Name");
+            this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+            this.resultsWriter.Write("Grid Rows");
+            this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+            this.resultsWriter.Write("Grid Columns");
+            this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+            this.resultsWriter.Write("Num Of Agents");
+            this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+            this.resultsWriter.Write("Num Of Obstacles");
+            this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+            this.resultsWriter.Write("Instance Id");
+            this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+
+            for (int i = 0; i < solvers.Count; i++)
+            {
+                var solver = solvers[i];
+                this.resultsWriter.Write(solver + " Success");
+                this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+                this.resultsWriter.Write(solver + " Runtime");
+                this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+                this.resultsWriter.Write(solver + " Solution Cost");
+                this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+                solver.OutputStatisticsHeader(this.resultsWriter);
+                this.resultsWriter.Write(solver + " Max Group");
+                this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+                this.resultsWriter.Write(solver + " Solution Depth");
+                this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
+            }
+            this.ContinueToNextLine();
+        }
+
+        private void ContinueToNextLine()
+        {
+            this.resultsWriter.WriteLine();
+            this.resultsWriter.Flush();
+        }
+
+        public void ResetOutOfTimeCounters()
+        {
+            for (int i = 0; i < outOfTimeCounters.Length; i++)
+            {
+                outOfTimeCounters[i] = 0;
+            }
+        }
 
         /// <summary>
         /// write execution info to file

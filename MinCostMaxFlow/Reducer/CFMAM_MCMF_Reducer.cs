@@ -56,35 +56,127 @@ namespace CPF_experiment
             this.NFNodes = new HashSet<NFReducerNode>();
             this.l = -1;
             this.edgeCounter = 0;
+            this.outputProblem = null;
             NFReducerNode.indexCounter = 0;
         }
 
-        public void GetCFMAMSolution(MinCostFlow mcmfSolution, long mcmfTime, bool printPath = false)
+        //public String GetCFMAMSolution2(MinCostFlow mcmfSolution, long mcmfTime, bool printPath = false)
+        //{
+        //    String solution = "";
+        //    long optimalCost = mcmfSolution.OptimalCost();
+        //    solution += "Goal State: (" + this.goalState.x + "," + this.goalState.y + ")\n";
+        //    solution += "Minimum cost: " + optimalCost + "\n";
+        //    solution += "Reduction Execution Time (milliseconds): " + timer.ElapsedMilliseconds + "\n";
+        //    solution += "MCMF Execution Time (milliseconds): " + mcmfTime + "\n";
+
+        //    if (printPath)
+        //    {
+        //        for (int i = 0; i < outputProblem.numArcs; ++i)
+        //        {
+        //            long cost = mcmfSolution.Flow(i) * mcmfSolution.UnitCost(i);
+        //            if (cost != 0)
+        //            {
+        //                NFReducerNode fromNode = GetNode(mcmfSolution.Tail(i));
+        //                NFReducerNode toNode = GetNode(mcmfSolution.Head(i));
+        //                solution += "(" + fromNode.x + "," + fromNode.y + ")" + " -> " +
+        //                                  "(" + toNode.x + "," + toNode.y + ")" + "  " +
+        //                                  string.Format("{0,3}", "Time: " + (T - fromNode.nodeTime + 1)) + "\n";
+        //            }
+        //        }
+        //    }
+        //    solution += "\n--------------------------------------------------------------\n";
+        //    return solution;
+        //}
+
+        public String GetCFMAMSolution(MinCostFlow mcmfSolution, long mcmfTime, bool printPath = false)
         {
+            String solution = "";
             long optimalCost = mcmfSolution.OptimalCost();
-            Console.WriteLine("Goal State: (" + this.goalState.x + "," + this.goalState.y + ")");
-            Console.WriteLine("Minimum cost: " + optimalCost);
-            Console.WriteLine("Reduction Execution Time: " + ((float)timer.ElapsedMilliseconds / 1000.0) + " Seconds");
-            Console.WriteLine("MCMF Execution Time: " + ((float)mcmfTime / 1000.0) + " Seconds");
+            solution += "Goal State: (" + this.goalState.x + "," + this.goalState.y + ")\n";
+            solution += "Minimum cost: " + optimalCost + "\n";
+            solution += "Reduction Execution Time (milliseconds): " + timer.ElapsedMilliseconds + "\n";
+            solution += "MCMF Execution Time (milliseconds): " + mcmfTime + "\n\n";
 
             if (printPath)
             {
-                for (int i = 0; i < outputProblem.numArcs; ++i)
+                Stack<NFReducerNode>[] paths = new Stack<NFReducerNode>[startPositions.Length];
+                Stack<NFReducerNode[]>[] nodesForEachTime = new Stack<NFReducerNode[]>[this.T];
+
+                for(int i=0; i<nodesForEachTime.Length; i++)
+                    nodesForEachTime[i] = new Stack<NFReducerNode[]>();
+                // Sorting each move to it's time
+                for (int i = 0; i < outputProblem.numArcs; i++)
                 {
                     long cost = mcmfSolution.Flow(i) * mcmfSolution.UnitCost(i);
                     if (cost != 0)
                     {
                         NFReducerNode fromNode = GetNode(mcmfSolution.Tail(i));
                         NFReducerNode toNode = GetNode(mcmfSolution.Head(i));
-                        Console.WriteLine("(" + fromNode.x + "," + fromNode.y + ")" + " -> " +
-                                          "(" + toNode.x + "," + toNode.y + ")" + "  " +
-                                          string.Format("{0,3}", "Time: " + (T - fromNode.nodeTime + 1)));
+                        if (T - fromNode.nodeTime == 0)
+                        {
+                            NFReducerNode[] nodesStartArray = { null, fromNode };
+                            nodesForEachTime[0].Push(nodesStartArray);
+                        }
+
+                        NFReducerNode[] nodesArray = { fromNode, toNode };
+                        nodesForEachTime[T - toNode.nodeTime].Push(nodesArray); 
                     }
                 }
+
+                // Inserting start nodes to each agent path
+                int startNodesCounter = 0;
+                foreach(NFReducerNode[] startNode in nodesForEachTime[0])
+                {
+                    paths[startNodesCounter] = new Stack<NFReducerNode>();
+                    paths[startNodesCounter].Push(startNode[1]);
+                    startNodesCounter++;
+                }
+
+                // Searching agents that started on the meeting points
+                for (int i = 0; i < paths.Length; i++)
+                {
+                    if (paths[i] == null)
+                    {
+                        paths[i] = new Stack<NFReducerNode>();
+                        paths[i].Push(new NFReducerNode(0, goalState.x, goalState.y));
+                    }
+                }
+
+                // Adding each node of each agent to his path
+                for (int i=1; i<nodesForEachTime.Length; i++)
+                {
+                    while (nodesForEachTime[i].Count != 0)
+                    {
+                        NFReducerNode[] move = nodesForEachTime[i].Pop();
+                        for (int j = 0; j < paths.Length; j++)
+                        {
+                            NFReducerNode lastNode = paths[j].Peek();
+                            if (lastNode.x == move[0].x && lastNode.y == move[0].y && lastNode.nodeTime == move[0].nodeTime)
+                            {
+                                paths[j].Push(move[1]);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // String output
+                for(int i=0; i<paths.Length; i++)
+                {
+                    String agentPath = "";
+                    NFReducerNode node;
+                    while (paths[i].Count != 1)
+                    {
+                        node = paths[i].Pop();
+                        agentPath = "->(" + node.x + "," + node.y + ")" + agentPath;
+                    }
+                    node = paths[i].Pop();
+                    agentPath = "s" + i + ": (" + node.x + "," + node.y + ")" + agentPath;
+                    solution += agentPath + "\n";
+                }
             }
-            Console.WriteLine("");
-            Console.WriteLine("--------------------------------------------------------------");
-            Console.WriteLine("");
+            solution += "\n--------------------------------------------------------------\n";
+            return solution;
         }
 
         private NFReducerNode GetNode(int index)
@@ -100,9 +192,8 @@ namespace CPF_experiment
         public void reduce()
         {
             timer = Stopwatch.StartNew();
-            CreateNFProblem();
-            ImportToMCMFAlgorithm();
-            // PrintSolution();
+            if(CreateNFProblem())
+                ImportToMCMFAlgorithm();
             timer.Stop();
         }
 
@@ -159,7 +250,7 @@ namespace CPF_experiment
         /// <summary>
         /// Creates an initial network flow problem reduced from the given problem
         /// </summary>
-        private void CreateNFProblem()
+        private bool CreateNFProblem()
         {
             NFReducerNode superSink = new NFReducerNode(-1, -1, -1);
             NFNodes.Add(superSink);
@@ -168,6 +259,10 @@ namespace CPF_experiment
             openList.Enqueue(new NFReducerNode(0, goalState.x, goalState.y));
             while (openList.Count != 0)
             {
+
+                if (timer.ElapsedMilliseconds > Constants.MCMF_MAX_TIME)
+                    return false;
+
                 NFReducerNode node = openList.Dequeue();
                 LinkedList<NFReducerNode> nodeSons = new LinkedList<NFReducerNode>();
                 if (l == -1 || (l != -1 && node.nodeTime != T))
@@ -192,6 +287,8 @@ namespace CPF_experiment
                 if (!NFNodes.Contains(node))
                     AddAfterDuplicationAndSinkConnection(node, superSink);
             }
+
+            return true;
         }
 
         private void AddAfterDuplicationAndSinkConnection(NFReducerNode node, NFReducerNode megaSink)
@@ -239,56 +336,37 @@ namespace CPF_experiment
         {
             LinkedList<NFReducerNode> sons = new LinkedList<NFReducerNode>();
 
-            NFReducerNode son = new NFReducerNode(node.nodeTime + 1, node.x, node.y);
+            CollectSon(openList, sons, node.nodeTime + 1, node.x, node.y);
+
+            if (node.x != this.problemGrid.Length - 1 && !problemGrid[node.x + 1][node.y])
+            {
+                CollectSon(openList, sons, node.nodeTime + 1, node.x + 1, node.y);
+            }
+            if (node.x != 0 && !problemGrid[node.x - 1][node.y])
+            {
+                CollectSon(openList, sons, node.nodeTime + 1, node.x - 1, node.y);
+            }
+            if (node.y != this.problemGrid[node.x].Length - 1 && !problemGrid[node.x][node.y + 1])
+            {
+                CollectSon(openList, sons, node.nodeTime + 1, node.x, node.y + 1);
+            }
+            if (node.y != 0 && !problemGrid[node.x][node.y - 1])
+            {
+                CollectSon(openList, sons ,node.nodeTime + 1, node.x, node.y - 1);
+            }
+
+            return sons;
+        }
+
+        private void CollectSon(ReducerOpenList openList, LinkedList<NFReducerNode> sons, int nodeTime, int x, int y)
+        {
+            NFReducerNode son = new NFReducerNode(nodeTime, x, y);
             if (openList.Contains(son))
             {
                 son = openList.Get(son);
                 NFReducerNode.DecreaseIndexCounter();
             }
             sons.AddLast(son);
-
-            if (node.y != this.problemGrid.Length - 1 && !problemGrid[node.y + 1][node.x])
-            {
-                son = new NFReducerNode(node.nodeTime + 1, node.x, node.y + 1);
-                if (openList.Contains(son))
-                {
-                    son = openList.Get(son);
-                    NFReducerNode.DecreaseIndexCounter();
-                }
-                sons.AddLast(son);
-            }
-            if (node.y != 0 && !problemGrid[node.y - 1][node.x])
-            {
-                son = new NFReducerNode(node.nodeTime + 1, node.x, node.y-1);
-                if (openList.Contains(son))
-                {
-                    son = openList.Get(son);
-                    NFReducerNode.DecreaseIndexCounter();
-                }
-                sons.AddLast(son);
-            }
-            if (node.x != this.problemGrid[node.y].Length - 1 && !problemGrid[node.y][node.x + 1])
-            {
-                son = new NFReducerNode(node.nodeTime + 1, node.x + 1, node.y);
-                if (openList.Contains(son))
-                {
-                    son = openList.Get(son);
-                    NFReducerNode.DecreaseIndexCounter();
-                }
-                sons.AddLast(son);
-            }
-            if (node.x != 0 && !problemGrid[node.y][node.x - 1])
-            {
-                son = new NFReducerNode(node.nodeTime + 1, node.x - 1, node.y);
-                if (openList.Contains(son))
-                {
-                    son = openList.Get(son);
-                    NFReducerNode.DecreaseIndexCounter();
-                }
-                sons.AddLast(son);
-            }
-
-            return sons;
         }
         
         /// <summary>

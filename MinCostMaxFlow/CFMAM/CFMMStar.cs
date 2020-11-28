@@ -31,7 +31,7 @@ namespace CPF_experiment
         protected int solutionDepth;
         public CFMAM_Run runner;
         protected Move goalLocation;
-        protected MAM_Plan solution;
+        private OGAM_Run solution;
         private int bestMakeSpanCost; // The best makespan and soc of the best location
         private int bestSOCCost;
         private Move bestCostLocation;
@@ -93,6 +93,9 @@ namespace CPF_experiment
 
             // caculate lowest centrality 
             MAM_AgentState agent = getLowestCentralityAgent();
+            CalculateH(agent, null);
+            CalculateF(agent);
+            closed(agent);
             openList.Add(agent);
           
         }
@@ -295,6 +298,7 @@ namespace CPF_experiment
                 if (runner.ElapsedMilliseconds() > Constants.MAX_TIME)
                 {
                     this.totalCost = Constants.TIMEOUT_COST;
+                    this.solution = null;
                     Console.WriteLine("Out of time");
                     this.Clear(); // Total search time exceeded - we're not going to resume this search.
                     return false;
@@ -302,22 +306,18 @@ namespace CPF_experiment
 
                 var currentNode = removeFromOpen();
 
-                if (currentNode.f >= getBestCost() || isEmpty()) // Goal test
-                {
-                    success = true;
-                    Console.WriteLine("Meeting point found! In: " + bestCostLocation);
-                    
-                    // TODO: ToString in OGAM solution
-                    GetPlan().ToString();  // Print plan
-
-                    this.Clear(); // Goal found - we're not going to resume this search
-                    return true;
-                }
-                
                 // Expand
                 bool expanded = Expand(currentNode);
                 nodesExpanded++;
 
+                if (currentNode.f >= getBestCost() || isEmpty()) // Goal test
+                {
+                    success = true;
+                    Console.WriteLine("Meeting point found! In: " + bestCostLocation);
+
+                    this.Clear(); // Goal found - we're not going to resume this search
+                    return true;
+                }
             }
             this.totalCost = Constants.NO_SOLUTION_COST;
             this.Clear(); // unsolvable problem - we're not going to resume it
@@ -356,20 +356,6 @@ namespace CPF_experiment
                 closedList[childMove].Add(child.agentIndex, moveAgentDiffTimes);
                 return false;
             }
-            else if (!closedList[childMove].Keys.Contains(child.agentIndex)) // Child is not in the closed list for this agent
-            {
-                Dictionary<int, MAM_AgentState> moveAgentDiffTimes = new Dictionary<int, MAM_AgentState>();
-                moveAgentDiffTimes.Add(timedChildMove.time, child);
-                closedList[childMove].Add(child.agentIndex, moveAgentDiffTimes);
-                return false;
-            }
-            else if (!closedList[childMove][child.agentIndex].Keys.Contains(timedChildMove.time)) // Child is in the closed list for this agent, but not for this time
-            {
-                Dictionary<int, MAM_AgentState> moveAgentDiffTimes = closedList[childMove][child.agentIndex];
-                moveAgentDiffTimes.Add(timedChildMove.time, child);
-                //closedList[childMove].Add(child.agentIndex, moveAgentDiffTimes);
-                return false;
-            }
             return true;
         }
 
@@ -386,9 +372,17 @@ namespace CPF_experiment
         )
         {
             Move move = new Move(currentNode.lastMove);
-            long nodeCost = OGAM_Run.solve(this.GetProblemInstance(), move);
+            OGAM_Run low_level = new OGAM_Run(this.GetProblemInstance(), move);
+            long nodeCost = low_level.solve();
+            //Console.WriteLine(low_level.getPlan(false));
+            if (nodeCost == -1)
+                throw new TimeoutException("OGAM timeout");
             if (nodeCost < this.getBestCost())
+            {
                 this.bestSOCCost = (int)nodeCost;
+                this.bestCostLocation = currentNode.lastMove;
+                this.solution = low_level;
+            }
         }
 
         private bool Expand
@@ -396,13 +390,13 @@ namespace CPF_experiment
             MAM_AgentState node
         )
         {
-            UpdateBestCost(node);
 
             if (expandedNodes.Contains(node))
             {
                 nodesExpanded--;
                 return false;
             }
+            UpdateBestCost(node);
             expandedNodes.Add(node);
             foreach (MAM_AgentState child in node.GetChildrenStates())
             {
@@ -426,8 +420,6 @@ namespace CPF_experiment
                 return;
             if (!closed(child))
             {
-                if (child.f >= getBestCost())
-                    return;
                 child.numOfAgentsInBestHeuristic = instance.m_vAgents.Length;
                 if (openList.Contains(child))
                 {
@@ -439,6 +431,8 @@ namespace CPF_experiment
                     CalculateH(child, node);
                 }
                 CalculateF(child);
+                if (child.f >= getBestCost())
+                    return;
                 openList.Add(child);
 
                 nodesGenerated++;
@@ -446,24 +440,10 @@ namespace CPF_experiment
         }
 
 
-        public virtual MAM_Plan GetPlan()
+        public virtual String GetPlan()
         {
             // TODO: Get CFMAM plan
-            if (this.solution == null)
-            {
-                if (bestCostLocation == null)
-                    return null;
-                Dictionary<int, Dictionary<int, MAM_AgentState>> solutionAgentsStatesDictionaries = closedList[bestCostLocation];
-                Dictionary<int, MAM_AgentState> solutionAgentsStates = new Dictionary<int, MAM_AgentState>();
-                foreach (int agent in solutionAgentsStatesDictionaries.Keys)
-                {
-                    int bestTimeForGivenAgent = solutionAgentsStatesDictionaries[agent].Keys.Min();
-                    MAM_AgentState bestStateForGivenAgent = solutionAgentsStatesDictionaries[agent][bestTimeForGivenAgent];
-                    solutionAgentsStates.Add(agent, bestStateForGivenAgent);
-                }
-                this.solution = new MAM_Plan(solutionAgentsStates.Values.ToList());
-            }
-            return this.solution;
+            return this.solution.getPlan();
         }
 
         public int GetSolutionDepth()

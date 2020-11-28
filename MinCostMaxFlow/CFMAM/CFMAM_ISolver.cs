@@ -51,7 +51,7 @@ namespace CPF_experiment
         /// Returns the found plan, or null if no plan was found.
         /// </summary>
         /// <returns></returns>
-        MAM_Plan GetPlan();
+        String GetPlan();
 
         Tuple<double, int> GetHeuristicCalculatorInitialH();
         /// <summary>

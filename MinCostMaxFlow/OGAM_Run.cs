@@ -8,20 +8,38 @@ namespace CPF_experiment
 {
     class OGAM_Run
     {
-        public static long solve(MAM_ProblemInstance instance, Move goalstate)
+
+        CFMAM_MCMF_Reducer reducer;
+        Stopwatch timer;
+        MinCostFlow solution;
+        Move goalState;
+        long mcmfTime;
+
+        public OGAM_Run(MAM_ProblemInstance instance, Move goalstate)
         {
-            CFMAM_MCMF_Reducer reducer = new CFMAM_MCMF_Reducer(instance, goalstate);
+            this.goalState = goalstate;
+            this.reducer = new CFMAM_MCMF_Reducer(instance, goalstate);
+            this.solution = null;
+            this.timer = null;
+            this.mcmfTime = -1;
+        }
+
+        public long solve()
+        {
             reducer.reduce();
+            if (reducer.outputProblem == null)
+                return -1;
             MinCostMaxFlow mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
-            Stopwatch timer = Stopwatch.StartNew();
-            MinCostFlow solution = mcmfSolver.SolveMinCostFlow();
+            timer = Stopwatch.StartNew();
+            solution = mcmfSolver.SolveMinCostFlow();
             timer.Stop();
-            if (solution != null)
-            {
-                reducer.GetCFMAMSolution(solution, timer.ElapsedMilliseconds);
-                return solution.OptimalCost();
-            }
-            return -1;
+            this.mcmfTime = timer.ElapsedMilliseconds;
+            return solution.OptimalCost();
+        }
+
+        internal string getPlan(bool printPath = true)
+        {
+            return this.reducer.GetCFMAMSolution(this.solution, this.mcmfTime, printPath);
         }
     }
 }

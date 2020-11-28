@@ -26,10 +26,12 @@ namespace CPF_experiment
         public new IEnumerable<TimedMove> GetNextMoves()
         {
             Direction[] directions;
-            if (Constants.ALLOW_DIAGONAL_MOVE)
+            if (Constants.ALLOW_DIAGONAL_MOVE && Constants.ALLOW_WAIT_MOVE)
                 directions = Move.validDirections;
-            else
+            else if (Constants.ALLOW_WAIT_MOVE)
                 directions = Move.validDirectionsNoDiag;
+            else
+                directions = Move.validDirectionsNoDiagNoWait;
             foreach (Direction op in directions)
             {
                 yield return new TimedMove(this.x + Move.directionToDeltas[(int)op, 0],

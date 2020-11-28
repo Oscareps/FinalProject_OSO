@@ -314,7 +314,7 @@ namespace CPF_experiment
         /// <summary>
         /// This is the starting point of the program. 
         /// </summary>
-        public static void Main(string[] args)
+        public static void MAM_Main(string[] args)
         {
             MAM_Program me = new MAM_Program();
             MAM_Program.RESULTS_FILE_NAME = Process.GetCurrentProcess().ProcessName + ".csv";

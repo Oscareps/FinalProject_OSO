@@ -92,6 +92,13 @@ namespace CPF_experiment
             Direction.West,
         };
 
+        protected static readonly Direction[] validDirectionsNoDiagNoWait = {
+            Direction.North,
+            Direction.East,
+            Direction.South,
+            Direction.West,
+        };
+
         protected static readonly Direction[] validDirections = {
             Direction.Wait,
             Direction.North,
