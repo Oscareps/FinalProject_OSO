@@ -349,8 +349,8 @@ namespace CPF_experiment
                     (isEmpty() && meetFlag)) // Goal test
                 {
                     success = true;
-                    Console.WriteLine("Meeting point found! In: " + bestCostLocation);
-                    GetPlan().ToString();  // Print plan
+                    //Console.WriteLine("Meeting point found! In: " + bestCostLocation);
+                    GetPlan();  // Print plan
                     this.Clear(); // Goal found - we're not going to resume this search
                     return true;
                 }

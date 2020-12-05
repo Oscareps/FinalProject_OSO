@@ -129,13 +129,6 @@ namespace CPF_experiment
                     Math.Abs(currentAgent.lastMove.y - comparedAgent.lastMove.y);
         }
 
-        public void AddConstraints
-        (
-            HashSet<MMStarConstraint> constraints
-        )
-        {
-        }
-
         private void CalculateH
         (
             MAM_AgentState state,
@@ -313,7 +306,6 @@ namespace CPF_experiment
                 if (currentNode.f >= getBestCost() || isEmpty()) // Goal test
                 {
                     success = true;
-                    Console.WriteLine("Meeting point found! In: " + bestCostLocation);
 
                     this.Clear(); // Goal found - we're not going to resume this search
                     return true;

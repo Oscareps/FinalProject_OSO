@@ -39,7 +39,8 @@ namespace CPF_experiment
             MAM_ProblemInstance instance;
             try
             {
-                instance = MAM_ProblemInstance.Import(Directory.GetCurrentDirectory() + "\\MAM_Instances\\" + fileName);
+                String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "Inconsistency Check", fileName };
+                instance = MAM_ProblemInstance.Import(Path.Combine(pathElements));
             }
             catch (Exception e)
             {
@@ -57,6 +58,8 @@ namespace CPF_experiment
             bool success;
             success = runner.SolveGivenProblem(instance);
             runner.CloseResultsFile();
+
+
             return success;
         }
 
@@ -79,13 +82,13 @@ namespace CPF_experiment
             bool continueFromLastRun = false;
             string[] LastProblemDetails = null;
             string currentProblemFileName = Directory.GetCurrentDirectory() + "\\MAM_Instances\\current problem-" + Process.GetCurrentProcess().ProcessName;
-            if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
-            {
-                var lastProblemFile = new StreamReader(currentProblemFileName);
-                LastProblemDetails = lastProblemFile.ReadLine().Split(',');  //get the last problem
-                lastProblemFile.Close();
-                continueFromLastRun = true;
-            }
+            //if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
+            //{
+            //    var lastProblemFile = new StreamReader(currentProblemFileName);
+            //    LastProblemDetails = lastProblemFile.ReadLine().Split(',');  //get the last problem
+            //    lastProblemFile.Close();
+            //    continueFromLastRun = true;
+            //}
 
             for (int gs = 0; gs < gridSizes.Length; gs++)
             {
@@ -140,7 +143,7 @@ namespace CPF_experiment
                             {
                                 runner.SolveGivenProblem(instance);
                             }
-                            catch(TimeoutException e)
+                            catch (TimeoutException e)
                             {
                                 Console.Out.WriteLine(e.Message);
                                 Console.Out.WriteLine();
@@ -164,6 +167,8 @@ namespace CPF_experiment
                                 lastProblemFile.Write("," + runner.outOfTimeCounters[j]);
                             }
                             lastProblemFile.Close();
+                            String[] filePath = { Directory.GetCurrentDirectory(), "MAM_Instances", "Inconsistency Check", instanceName };
+                            File.Delete(Path.Combine(filePath));
                         }
                     }
                 }
@@ -309,7 +314,7 @@ namespace CPF_experiment
 
             CFMAM_Program.onlyReadInstances = false;
 
-            int instances = 10;
+            int instances = 200;
 
             bool runDragonAge = false;
             bool runGrids = true;
@@ -318,7 +323,7 @@ namespace CPF_experiment
 
             if (runGrids == true)
             {
-                int[] gridSizes = new int[] { 30 };     // Map size 8x8, 16x16 ...
+                int[] gridSizes = new int[] { 3 };     // Map size 8x8, 16x16 ...
 
                 int[] agentListSizes = new int[] { 3 };  // Number of agents
 
@@ -334,7 +339,7 @@ namespace CPF_experiment
             {
 
                 Console.WriteLine();
-                me.RunInstance("Instance-5-10-3-1");
+                me.RunInstance("Instance-4-13-4-46");
             }
             Console.WriteLine("*********************THE END**************************");
             Console.ReadLine();

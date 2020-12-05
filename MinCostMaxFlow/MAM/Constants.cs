@@ -7,7 +7,7 @@ namespace CPF_experiment
         //public static int MAX_TIME = 600000;
         public static int MAX_TIME = int.MaxValue;
 
-        public static long MCMF_MAX_TIME = 50000;
+        public static long MCMF_MAX_TIME = 2000;
         
         /// <summary>
         /// The cost that is set to the algorithms when all the states have been expanded and no goal was found 
@@ -40,7 +40,7 @@ namespace CPF_experiment
 
         public const bool ALLOW_DIAGONAL_MOVE = false;
 
-        public const bool ALLOW_WAIT_MOVE = false;
+        public static bool ALLOW_WAIT_MOVE = true;
 
         public static readonly int NUM_ALLOWED_DIRECTIONS = ALLOW_DIAGONAL_MOVE ? Move.NUM_DIRECTIONS : Move.NUM_NON_DIAG_MOVES;
 
