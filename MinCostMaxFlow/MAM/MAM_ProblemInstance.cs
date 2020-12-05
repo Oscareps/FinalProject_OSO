@@ -213,8 +213,8 @@ namespace CPF_experiment
             string fileName
         )
         {
-
-            TextWriter output = new StreamWriter(Directory.GetCurrentDirectory() + "\\MAM_Instances\\" + fileName);
+            String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "Inconsistency Check", fileName };
+            TextWriter output = new StreamWriter(Path.Combine(pathElements));
             // Output the instance ID
             if (this.parameters.ContainsKey(MAM_ProblemInstance.GRID_NAME_KEY))
                 output.WriteLine(this.instanceId.ToString() + "," + this.parameters[MAM_ProblemInstance.GRID_NAME_KEY]);

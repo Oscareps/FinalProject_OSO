@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1;</DefineConstants>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors>NU1605</WarningsAsErrors>
     <OutputPath></OutputPath>
@@ -16,10 +16,13 @@
   <ItemGroup>
     <PackageReference Include="Google.OrTools" Version="8.0.8283" />
     <PackageReference Include="Google.OrTools.runtime.win-x64" Version="8.0.8283" />
+    <PackageReference Include="Accord" Version="3.8.0" />
+    <PackageReference Include="Accord.Statistics" Version="3.8.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="MAM\" />
+    <Folder Include="CBS\" />
   </ItemGroup>
 
   <ItemGroup>

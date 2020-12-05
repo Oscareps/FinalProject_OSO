@@ -51,6 +51,8 @@ namespace CPF_experiment
         /// </summary>
         public static Random rand = new Random();
 
+        public MAM_Plan plan;
+
 
 
         /// <summary>
@@ -131,7 +133,7 @@ namespace CPF_experiment
             MAM_HeuristicCalculator ZeroHeuristic = new ZeroHCalculator();
             //MMStar_ZeroH_Makespan.SetHeuristic(ZeroHeuristic);
             MMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
-            
+
 
             //MAM_ISolver MMStar_LPH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
             //MAM_HeuristicCalculator LPHCalculator = new LPHCalculator();
@@ -145,8 +147,8 @@ namespace CPF_experiment
 
             // *****  SOC Solvers  *****
             //solvers.Add(MMStar_FastMapH_SOC);
-            solvers.Add(MMStar_MedianH_SOC);
-            //solvers.Add(MMStar_CliqueH_SOC);
+            //solvers.Add(MMStar_MedianH_SOC);
+            solvers.Add(MMStar_CliqueH_SOC);
             //solvers.Add(MMStar_ZeroeH_SOC);
 
 
@@ -155,6 +157,8 @@ namespace CPF_experiment
             {
                 outOfTimeCounters[i] = 0;
             }
+
+            this.plan = null;
         }
 
         /// <summary>
@@ -311,7 +315,8 @@ namespace CPF_experiment
         /// <param name="instance">The instance to solve</param>
         public bool SolveGivenProblem
         (
-            MAM_ProblemInstance instance
+            MAM_ProblemInstance instance,
+            HashSet<MMStarConstraint> constraints = null
         )
         {
             instanceId += 1;
@@ -320,7 +325,7 @@ namespace CPF_experiment
             List<uint> agentList = Enumerable.Range(0, instance.m_vAgents.Length).Select<int, uint>(x => (uint)x).ToList<uint>(); // FIXME: Must the heuristics really receive a list of uints?
 
             // Solve using the different algorithms
-            Debug.WriteLine("Solving " + instance);
+            //Debug.WriteLine("Solving " + instance);
 
             MAM_AgentState[] vAgents = new MAM_AgentState[instance.GetNumOfAgents()];
             for (int agentIndex = 0; agentIndex < instance.GetNumOfAgents(); agentIndex++)
@@ -343,7 +348,7 @@ namespace CPF_experiment
                         Console.WriteLine("Preprocessing time in milliseconds: {0}", preprocessingTime);
                     }
 
-                    this.run(solvers[i], instance);
+                    this.run(solvers[i], instance, constraints);
                     MAM_AgentState[] vAgents2 = new MAM_AgentState[vAgents.Count()];
                     for (int agentIndex = 0; agentIndex < vAgents.Count(); agentIndex++)
                         vAgents2[agentIndex] = new MAM_AgentState(vAgents[agentIndex]);
@@ -362,7 +367,8 @@ namespace CPF_experiment
                             Console.WriteLine();
                         }
                         outOfTimeCounters[i] = 0;
-                        Console.WriteLine("+SUCCESS+ (:");
+                        //Console.WriteLine("+SUCCESS+ (:");
+                        this.plan = plan;
                     }
                     else
                     {
@@ -370,11 +376,9 @@ namespace CPF_experiment
                         Console.WriteLine("-FAILURE- ):");
                     }
                     planningTime = elapsedTime;
-                    WriteGivenProblem(instance, solvers[i], plan);
                 }
                 else if (toPrint)
                     PrintNullStatistics(solvers[i]);
-                Console.WriteLine();
             }
             return true;
         }
@@ -389,16 +393,18 @@ namespace CPF_experiment
         private void run
         (
             MAM_ISolver solver,
-            MAM_ProblemInstance instance
+            MAM_ProblemInstance instance,
+            HashSet<MMStarConstraint> constraints = null
         )
         {
             // Run the algorithm
             bool solved;
-            Console.WriteLine("----------------- " + solver + " with " + solver.GetHeuristicCalculator().GetName() + ", Minimizing " + solver.GetCostFunction().ToString() + " -----------------");
+            //Console.WriteLine("----------------- " + solver + " with " + solver.GetHeuristicCalculator().GetName() + ", Minimizing " + solver.GetCostFunction().ToString() + " -----------------");
             this.startTime = this.ElapsedMillisecondsTotal();
             solver.GetHeuristicCalculator().init(instance);
             solver.Setup(instance, this);
-            HashSet<MMStarConstraint> constraints = new HashSet<MMStarConstraint>();
+            if(constraints == null)
+                constraints = new HashSet<MMStarConstraint>();
             //MMStarConstraint constraint1 = new MMStarConstraint(2, 3, 2, Move.Direction.South, 2);
             //MMStarConstraint constraint2 = new MMStarConstraint(1, 1, 2, Move.Direction.NO_DIRECTION, 1);
             //constraints.Add(constraint1);
@@ -408,16 +414,16 @@ namespace CPF_experiment
             elapsedTime = this.ElapsedMilliseconds();
             if (solved)
             {
-                Console.WriteLine("Total MakeSpan cost: {0}", solver.GetSolutionMakeSpanCost());
-                Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionSOCCost());
+                //Console.WriteLine("Total MakeSpan cost: {0}", solver.GetSolutionMakeSpanCost());
+                //Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionSOCCost());
             }
             else
             {
                 Console.WriteLine("Failed to solve");
             }
-            Console.WriteLine();
-            Console.WriteLine("Expanded nodes: {0}", solver.GetExpanded());
-            Console.WriteLine("Time in milliseconds: {0}", elapsedTime);
+            //Console.WriteLine();
+            //Console.WriteLine("Expanded nodes: {0}", solver.GetExpanded());
+            //Console.WriteLine("Time in milliseconds: {0}", elapsedTime);
             if (toPrint)
                 this.PrintStatistics(instance, solver, elapsedTime);
         }

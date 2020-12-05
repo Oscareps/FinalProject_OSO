@@ -72,7 +72,8 @@ namespace CPF_experiment
         /// <summary>
         /// all types of algorithms to be run
         /// </summary>
-        List<CFMAM_ISolver> solvers;
+        List<CFMAM_ISolver> CFMMStarSolvers;
+        List<ICbsSolver> CBSMMStarSolvers;
 
         /// <summary>
         /// all types of heuristics used
@@ -93,7 +94,8 @@ namespace CPF_experiment
 
 
             // Preparing the solvers:
-            solvers = new List<CFMAM_ISolver>();
+            CFMMStarSolvers = new List<CFMAM_ISolver>();
+            CBSMMStarSolvers = new List<ICbsSolver>();
 
             // FastMap Heuristic
             /*
@@ -124,15 +126,22 @@ namespace CPF_experiment
             MAM_HeuristicCalculator ZeroHeuristic = new ZeroHCalculator();
             CFMMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
 
-            // *****  SOC Solvers  *****
+            // *****  SOC CFMMStar Solvers  *****
             //solvers.Add(CFMMStar_FastMapH_SOC);
             //solvers.Add(CFMMStar_MedianH_SOC);
-            solvers.Add(CFMMStar_CliqueH_SOC);
+            CFMMStarSolvers.Add(CFMMStar_CliqueH_SOC);
             //solvers.Add(CFMMStar_ZeroeH_SOC);
 
+            // ***** SOC CBSMMStar Solvers *****
+            CBSMMStarSolvers.Add(new MAPF_CBS());
 
-            outOfTimeCounters = new int[solvers.Count];
-            for (int i = 0; i < outOfTimeCounters.Length; i++)
+
+            outOfTimeCounters = new int[CFMMStarSolvers.Count + CBSMMStarSolvers.Count];
+            for (int i = 0; i < CFMMStarSolvers.Count; i++)
+            {
+                outOfTimeCounters[i] = 0;
+            }
+            for (int i = CFMMStarSolvers.Count; i < outOfTimeCounters.Length; i++)
             {
                 outOfTimeCounters[i] = 0;
             }
@@ -302,11 +311,22 @@ namespace CPF_experiment
 
             // Solve using the different algorithms
             Debug.WriteLine("Solving " + instance);
+            solveWithCFFMMStar(instance);
+            solveWithCBSMMStar(instance);
+            int cbsCost = CBSMMStarSolvers[0].GetSolutionCost();
+            int imsCost = CFMMStarSolvers[0].GetSolutionSOCCost();
+            if (cbsCost != imsCost)
+                throw new Exception("Inconsistency between algorithms in instance " + instance.fileName);
 
+            return true;
+        }
+
+        private void solveWithCBSMMStar(MAM_ProblemInstance instance)
+        {
             MAM_AgentState[] vAgents = new MAM_AgentState[instance.GetNumOfAgents()];
             for (int agentIndex = 0; agentIndex < instance.GetNumOfAgents(); agentIndex++)
                 vAgents[agentIndex] = new MAM_AgentState(instance.m_vAgents[agentIndex]);
-            for (int i = 0; i < solvers.Count; i++)
+            for (int i = 0; i < CBSMMStarSolvers.Count; i++)
             {
                 solutionCost = -1;
                 if (outOfTimeCounters[i] < Constants.MAX_FAIL_COUNT)
@@ -314,28 +334,18 @@ namespace CPF_experiment
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
 
-                    preprocessingTime = 0;
-                    if (solvers[i].GetHeuristicCalculator().GetName() == "FastMap H")
-                    {
-                        this.startTime = this.ElapsedMillisecondsTotal();
-                        solvers[i].GetHeuristicCalculator().init(instance);
-                        solvers[i].GetHeuristicCalculator().preprocessing();
-                        preprocessingTime = this.ElapsedMilliseconds();
-                        Console.WriteLine("Preprocessing time in milliseconds: {0}", preprocessingTime);
-                    }
-
-                    this.run(solvers[i], instance);
+                    this.runCBSMMStar(CBSMMStarSolvers[i], instance);
                     MAM_AgentState[] vAgents2 = new MAM_AgentState[vAgents.Count()];
                     for (int agentIndex = 0; agentIndex < vAgents.Count(); agentIndex++)
                         vAgents2[agentIndex] = new MAM_AgentState(vAgents[agentIndex]);
                     instance.m_vAgents = vAgents2;
 
-                    solutionCost = solvers[i].GetSolutionSOCCost();
+                    solutionCost = CBSMMStarSolvers[i].GetSolutionCost();
 
                     String plan = null;
-                    if (solvers[i].IsSolved()) // Solved successfully
+                    if (CBSMMStarSolvers[i].isSolved()) // Solved successfully
                     {
-                        plan = solvers[i].GetPlan();
+                        plan = CBSMMStarSolvers[i].GetPlan();
                         if (toPrint)
                         {
                             Console.WriteLine();
@@ -351,13 +361,202 @@ namespace CPF_experiment
                         Console.WriteLine("-FAILURE- ):");
                     }
                     planningTime = elapsedTime;
-                    WriteGivenProblem(instance, solvers[i], plan);
+                    WriteGivenCBSMMStarProblem(instance, CBSMMStarSolvers[i], plan);
                 }
                 else if (toPrint)
-                    PrintNullStatistics(solvers[i]);
+                    PrintNullStatistics(CFMMStarSolvers[i]);
                 Console.WriteLine();
             }
-            return true;
+        }
+
+        private void WriteGivenCBSMMStarProblem(MAM_ProblemInstance instance, ICbsSolver solver, string plan)
+        {
+            writeToFile(
+                solver.GetName(),                       // solver name
+                planningTime.ToString(),                // planning time 
+                "SOC",                                  // cost function
+                solver.GetSolutionCost().ToString(),    // solution SOC cost
+                instanceId.ToString(),                  // instanceId  
+                instance.fileName,                      // file Name
+                instance.m_vAgents.Length.ToString(),   // #Agents
+                m_mapFileName,                          // Map name
+                solver.isSolved().ToString(),           // Success
+                instance.m_nObstacles,                  // Obstacles
+                solver.GetExpanded().ToString(),        // Expansions 
+                solver.GetGenerated().ToString(),       // Generates
+                preprocessingTime.ToString());            // preprocessing time
+        }
+
+        private void writeToFile
+        (
+            string solver,
+            string planTime,
+            string costFunction,
+            string planSOCCost,
+            string instanceId,
+            string instanceName,
+            string agentsCount,
+            string mapFileName,
+            string success,
+            uint obstaclesPercents,
+            string expandedNodes,
+            string generatedNodes,
+            string preprocessingTime
+        )
+        {
+            {
+                string pathDesktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string filePath = pathDesktop + "\\MMS_CSV.csv";
+                int length;
+                string delimter = ",";
+                List<string[]> output = new List<string[]>();
+                string[] temps = new string[16];
+
+
+                if (!File.Exists(filePath))
+                {
+                    File.Create(filePath).Close();
+
+                    temps[0] = "IncstanceId";
+                    temps[1] = "#Agents";
+                    temps[2] = "Map";
+                    temps[3] = "Obstacles";
+                    temps[4] = "File";
+                    temps[5] = "Cost Function";
+                    temps[6] = "Solver";
+                    temps[7] = "Heuristic";
+                    temps[8] = "Success";
+                    temps[9] = "Plan SOC";
+                    temps[11] = "Plan time";
+                    temps[12] = "Expansions";
+                    temps[13] = "Generations";
+
+                    output.Add(temps);
+
+                    length = output.Count;
+                    using (System.IO.TextWriter writer = File.AppendText(filePath))
+                    {
+                        for (int index = 0; index < length; index++)
+                        {
+                            writer.WriteLine(string.Join(delimter, output[index]));
+                        }
+                    }
+                }
+                output = new List<string[]>();
+                string new_file_name = instanceName;
+                string[] splitFilePath = new_file_name.Split('\\');
+                new_file_name = splitFilePath[splitFilePath.Count() - 1];
+                string map = (new_file_name.Split('.'))[0];
+                //string instance = (new_file_name.Split('-'))[1];
+                string instance = new_file_name + "CBSMMStar";
+
+                temps[0] = instanceId;
+                temps[1] = agentsCount;
+                temps[2] = mapFileName;
+                temps[3] = obstaclesPercents.ToString();
+                temps[4] = new_file_name;
+                temps[5] = costFunction;
+                temps[6] = solver;
+                temps[8] = success;
+                temps[9] = planSOCCost;
+                temps[11] = planTime;
+                temps[12] = expandedNodes;
+                temps[13] = generatedNodes;
+                temps[14] = preprocessingTime;
+                output.Add(temps);
+
+                length = output.Count;
+                using (System.IO.TextWriter writer = File.AppendText(filePath))
+                {
+                    for (int index = 0; index < length; index++)
+                    {
+                        writer.WriteLine(string.Join(delimter, output[index]));
+                    }
+                }
+            }
+        }
+
+        private void runCBSMMStar(ICbsSolver solver, MAM_ProblemInstance instance)
+        {
+            // Run the algorithm
+            bool solved;
+            Console.WriteLine("----------------- " + solver + ", Minimizing SOC -----------------");
+            Constants.ALLOW_WAIT_MOVE = true;
+            this.startTime = this.ElapsedMillisecondsTotal();
+            solver.Setup(instance, new MAM_Run());
+            solved = solver.Solve();
+            elapsedTime = this.ElapsedMilliseconds();
+            if (solved)
+            {
+                Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionCost());
+            }
+            else
+            {
+                Console.WriteLine("Failed to solve");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Expanded nodes: {0}", solver.GetExpanded());
+            Console.WriteLine("Time in milliseconds: {0}", elapsedTime);
+            if (toPrint)
+                this.PrintStatistics(instance, elapsedTime, null, solver);
+        }
+
+        public void solveWithCFFMMStar(MAM_ProblemInstance instance)
+        {
+            MAM_AgentState[] vAgents = new MAM_AgentState[instance.GetNumOfAgents()];
+            for (int agentIndex = 0; agentIndex < instance.GetNumOfAgents(); agentIndex++)
+                vAgents[agentIndex] = new MAM_AgentState(instance.m_vAgents[agentIndex]);
+            for (int i = 0; i < CFMMStarSolvers.Count; i++)
+            {
+                solutionCost = -1;
+                if (outOfTimeCounters[i] < Constants.MAX_FAIL_COUNT)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+
+                    preprocessingTime = 0;
+                    if (CFMMStarSolvers[i].GetHeuristicCalculator().GetName() == "FastMap H")
+                    {
+                        this.startTime = this.ElapsedMillisecondsTotal();
+                        CFMMStarSolvers[i].GetHeuristicCalculator().init(instance);
+                        CFMMStarSolvers[i].GetHeuristicCalculator().preprocessing();
+                        preprocessingTime = this.ElapsedMilliseconds();
+                        Console.WriteLine("Preprocessing time in milliseconds: {0}", preprocessingTime);
+                    }
+
+                    this.runCFMMStar(CFMMStarSolvers[i], instance);
+                    MAM_AgentState[] vAgents2 = new MAM_AgentState[vAgents.Count()];
+                    for (int agentIndex = 0; agentIndex < vAgents.Count(); agentIndex++)
+                        vAgents2[agentIndex] = new MAM_AgentState(vAgents[agentIndex]);
+                    instance.m_vAgents = vAgents2;
+
+                    solutionCost = CFMMStarSolvers[i].GetSolutionSOCCost();
+
+                    String plan = null;
+                    if (CFMMStarSolvers[i].IsSolved()) // Solved successfully
+                    {
+                        plan = CFMMStarSolvers[i].GetPlan();
+                        if (toPrint)
+                        {
+                            Console.WriteLine();
+                            Console.WriteLine(plan);
+                            Console.WriteLine();
+                        }
+                        outOfTimeCounters[i] = 0;
+                        Console.WriteLine("+SUCCESS+ (:");
+                    }
+                    else
+                    {
+                        outOfTimeCounters[i]++;
+                        Console.WriteLine("-FAILURE- ):");
+                    }
+                    planningTime = elapsedTime;
+                    WriteGivenCFMMStarProblem(instance, CFMMStarSolvers[i], plan);
+                }
+                else if (toPrint)
+                    PrintNullStatistics(CFMMStarSolvers[i]);
+                Console.WriteLine();
+            }
         }
 
         public double elapsedTime;
@@ -367,7 +566,7 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="solver">The solver</param>
         /// <param name="instance">The problem instance that will be solved</param>
-        private void run
+        private void runCFMMStar
         (
             CFMAM_ISolver solver,
             MAM_ProblemInstance instance
@@ -376,6 +575,7 @@ namespace CPF_experiment
             // Run the algorithm
             bool solved;
             Console.WriteLine("----------------- " + solver + " with " + solver.GetHeuristicCalculator().GetName() + ", Minimizing " + solver.GetCostFunction().ToString() + " -----------------");
+            Constants.ALLOW_WAIT_MOVE = false;
             this.startTime = this.ElapsedMillisecondsTotal();
             solver.GetHeuristicCalculator().init(instance);
             solver.Setup(instance, this);
@@ -383,6 +583,7 @@ namespace CPF_experiment
             elapsedTime = this.ElapsedMilliseconds();
             if (solved)
             {
+                Console.WriteLine();
                 Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionSOCCost());
             }
             else
@@ -393,20 +594,21 @@ namespace CPF_experiment
             Console.WriteLine("Expanded nodes: {0}", solver.GetExpanded());
             Console.WriteLine("Time in milliseconds: {0}", elapsedTime);
             if (toPrint)
-                this.PrintStatistics(instance, solver, elapsedTime);
+                this.PrintStatistics(instance, elapsedTime, solver);
         }
 
         /// <summary>
         /// Print the solver statistics to the results file.
         /// </summary>
         /// <param name="instance">The problem instance that was solved. Not used!</param>
-        /// <param name="solver">The solver that solved the problem instance</param>
+        /// <param name="CFMAMSolver">The solver that solved the problem instance</param>
         /// <param name="runtimeInMillis">The time it took the given solver to solve the given instance</param>
         private void PrintStatistics
         (
             MAM_ProblemInstance instance,
-            CFMAM_ISolver solver,
-            double runtimeInMillis
+            double runtimeInMillis,
+            CFMAM_ISolver CFMAMSolver,
+            ICbsSolver CBSMMStarSolver = null
         )
         {
             // Success col:
@@ -418,10 +620,18 @@ namespace CPF_experiment
             this.resultsWriter.Write(runtimeInMillis + RESULTS_DELIMITER);
             // Solution Cost col:
             //this.resultsWriter.Write(solver.GetSolutionCost() + RESULTS_DELIMITER);
-            // Algorithm specific cols:
-            solver.OutputStatistics(this.resultsWriter);
-            // Solution Depth col:
-            this.resultsWriter.Write(solver.GetSolutionDepth() + RESULTS_DELIMITER);
+            if (CBSMMStarSolver != null)
+            {
+                CBSMMStarSolver.OutputStatistics(this.resultsWriter);
+                this.resultsWriter.Write(CBSMMStarSolver.GetSolutionDepth() + RESULTS_DELIMITER);
+            }
+            else
+            {
+                // Algorithm specific cols:
+                CFMAMSolver.OutputStatistics(this.resultsWriter);
+                // Solution Depth col:
+                this.resultsWriter.Write(CFMAMSolver.GetSolutionDepth() + RESULTS_DELIMITER);
+            }
             //this.resultsWriter.Flush();
         }
 
@@ -458,7 +668,7 @@ namespace CPF_experiment
         /// Write to file a given instance 
         /// </summary>
         /// <param name="instance">The instance to execute</param>
-        public void WriteGivenProblem
+        public void WriteGivenCFMMStarProblem
         (
             MAM_ProblemInstance instance,
             CFMAM_ISolver solver,
@@ -518,9 +728,9 @@ namespace CPF_experiment
             this.resultsWriter.Write("Instance Id");
             this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
 
-            for (int i = 0; i < solvers.Count; i++)
+            for (int i = 0; i < CFMMStarSolvers.Count; i++)
             {
-                var solver = solvers[i];
+                var solver = CFMMStarSolvers[i];
                 this.resultsWriter.Write(solver + " Success");
                 this.resultsWriter.Write(MAM_Run.RESULTS_DELIMITER);
                 this.resultsWriter.Write(solver + " Runtime");

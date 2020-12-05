@@ -22,6 +22,7 @@ namespace CPF_experiment
         )
         {
             listOfLocations = new List<List<Move>>();
+            lastAgentsStates = lastAgentsStates.OrderBy(o => o.agentIndex).ToList();
             foreach (MAM_AgentState state in lastAgentsStates)
             {
                 List<Move> newList = new List<Move>();

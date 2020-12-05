@@ -22,6 +22,10 @@ namespace CPF_experiment
                 this.vertexConflict = false;
         }
 
+        public MMStarConstraint(CbsConstraint constraint)
+            : this(constraint.agentNum, constraint.move.x, constraint.move.y, constraint.move.direction, constraint.move.time)
+        { }
+
 
         public override bool Equals(object obj)
         {
