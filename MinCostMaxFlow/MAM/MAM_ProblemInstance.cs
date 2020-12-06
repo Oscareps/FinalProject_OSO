@@ -47,6 +47,9 @@ namespace CPF_experiment
 
         public string fileName;
 
+        private int nOfObstacles;
+        private int nOfLocations;
+
 
         public MAM_ProblemInstance
         (
@@ -76,6 +79,8 @@ namespace CPF_experiment
             m_vAgents = agentStartStates;
             m_vGrid = grid;
             agentsDictionary = new Dictionary<int, int>();
+            this.nOfObstacles = nObstacles;
+            this.nOfLocations = nLocations;
             for (int index = 0; index < m_vAgents.Length; index++)
                 agentsDictionary.Add(m_vAgents[index].agentIndex, index);
             if (nObstacles == -1)
@@ -87,6 +92,13 @@ namespace CPF_experiment
                 m_nLocations = ((uint)(grid.Length * grid[0].Length)) - m_nObstacles;
             else
                 m_nLocations = (uint)nLocations;
+        }
+
+        public MAM_ProblemInstance ReplanProblem(MAM_AgentState[] newStartStates)
+        {
+            MAM_ProblemInstance instanceCopy = new MAM_ProblemInstance(this.parameters);
+            instanceCopy.Init(newStartStates, this.m_vGrid, this.nOfObstacles, this.nOfLocations);
+            return instanceCopy;
         }
 
         public void SetCostFuncion

@@ -4,41 +4,41 @@ using System.Text;
 
 namespace CPF_experiment
 {
-    class ReducerOpenList
+    class ReducerOpenList<T>
     {
-        private Dictionary<NFReducerNode, NFReducerNode> listDict;
-        private Queue<NFReducerNode> listQueue;
+        private Dictionary<T, T> listDict;
+        private Queue<T> listQueue;
         public int Count;
 
         public ReducerOpenList()
         {
-            this.listDict = new Dictionary<NFReducerNode, NFReducerNode>();
-            this.listQueue = new Queue<NFReducerNode>();
+            this.listDict = new Dictionary<T, T>();
+            this.listQueue = new Queue<T>();
             this.Count = 0;
         }
 
-        public void Enqueue(NFReducerNode toAdd)
+        public void Enqueue(T toAdd)
         {
             this.listDict.Add(toAdd, toAdd);
             this.listQueue.Enqueue(toAdd);
             this.Count++;
         }
 
-        public NFReducerNode Get(NFReducerNode toGet)
+        public T Get(T toGet)
         {
             return this.listDict[toGet];
         }
 
-        public bool Contains(NFReducerNode toCheck)
+        public bool Contains(T toCheck)
         {
             return this.listDict.ContainsKey(toCheck);
         }
 
-        public NFReducerNode Dequeue()
+        public T Dequeue()
         {
             if(this.Count != 0)
             {
-                NFReducerNode firstInQueue = this.listQueue.Dequeue();
+                T firstInQueue = this.listQueue.Dequeue();
                 this.listDict.Remove(firstInQueue);
                 Count--;
                 return firstInQueue;

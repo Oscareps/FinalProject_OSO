@@ -29,7 +29,7 @@ namespace CPF_experiment
             runner.SolveGivenProblem(instance);
             runner.CloseResultsFile();
         }
-        
+
         /// <summary>
         /// Runs a single instance, imported from a given filename.
         /// </summary>
@@ -39,7 +39,7 @@ namespace CPF_experiment
             MAM_ProblemInstance instance;
             try
             {
-                String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "Inconsistency Check", fileName };
+                String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", fileName };
                 instance = MAM_ProblemInstance.Import(Path.Combine(pathElements));
             }
             catch (Exception e)
@@ -82,13 +82,13 @@ namespace CPF_experiment
             bool continueFromLastRun = false;
             string[] LastProblemDetails = null;
             string currentProblemFileName = Directory.GetCurrentDirectory() + "\\MAM_Instances\\current problem-" + Process.GetCurrentProcess().ProcessName;
-            //if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
-            //{
-            //    var lastProblemFile = new StreamReader(currentProblemFileName);
-            //    LastProblemDetails = lastProblemFile.ReadLine().Split(',');  //get the last problem
-            //    lastProblemFile.Close();
-            //    continueFromLastRun = true;
-            //}
+            if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
+            {
+                var lastProblemFile = new StreamReader(currentProblemFileName);
+                LastProblemDetails = lastProblemFile.ReadLine().Split(',');  //get the last problem
+                lastProblemFile.Close();
+                continueFromLastRun = true;
+            }
 
             for (int gs = 0; gs < gridSizes.Length; gs++)
             {
@@ -167,8 +167,6 @@ namespace CPF_experiment
                                 lastProblemFile.Write("," + runner.outOfTimeCounters[j]);
                             }
                             lastProblemFile.Close();
-                            String[] filePath = { Directory.GetCurrentDirectory(), "MAM_Instances", "Inconsistency Check", instanceName };
-                            File.Delete(Path.Combine(filePath));
                         }
                     }
                 }
@@ -178,7 +176,8 @@ namespace CPF_experiment
 
         //protected static readonly string[] daoMapFilenames = {/* "dao_maps\\den502d.map", "dao_maps\\ost003d.map", */"dao_maps\\brc202d.map" ,dao_maps\\kiva.map};
 
-        protected static readonly string[] daoMapFilenames = { "dao_maps\\Enigma.map" };
+        static String[] pathElem = { "dao_maps", "kiva.map" };
+        protected static readonly string[] daoMapFilenames = { Path.Combine(pathElem) };
 
         /*protected static readonly string[] daoMapFilenames = {  "dao_maps\\Berlin_0_256.map",
                                                                 "dao_maps\\Berlin_0_512.map",
@@ -218,7 +217,9 @@ namespace CPF_experiment
             bool continueFromLastRun = false;
             string[] lineParts = null;
 
-            string currentProblemFileName = Directory.GetCurrentDirectory() + "\\MAM_Instances\\current problem-" + Process.GetCurrentProcess().ProcessName;
+            String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "current problem-" + Process.GetCurrentProcess().ProcessName };
+            string currentProblemFileName = Path.Combine(pathElements);
+
             if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
             {
                 TextReader input = new StreamReader(currentProblemFileName);
@@ -254,7 +255,8 @@ namespace CPF_experiment
                         instanceName = Path.GetFileNameWithoutExtension(mapFileName) + "-" + agentListSizes[ag] + "-" + i;
                         try
                         {
-                            instance = MAM_ProblemInstance.Import(Directory.GetCurrentDirectory() + "\\MAM_Instances\\" + instanceName);
+                            String[] path = { Directory.GetCurrentDirectory(), "MAM_Instances", instanceName };
+                            instance = MAM_ProblemInstance.Import(Path.Combine(pathElements));
                         }
                         catch (Exception importException)
                         {
@@ -314,21 +316,21 @@ namespace CPF_experiment
 
             CFMAM_Program.onlyReadInstances = false;
 
-            int instances = 200;
+            int instances = 10;
 
-            bool runDragonAge = false;
-            bool runGrids = true;
+            bool runDragonAge = true;
+            bool runGrids = false;
             bool runMazesWidth1 = false;
             bool runSpecific = false;
 
             if (runGrids == true)
             {
-                int[] gridSizes = new int[] { 3 };     // Map size 8x8, 16x16 ...
+                int[] gridSizes = new int[] { 30 };     // Map size 8x8, 16x16 ...
 
-                int[] agentListSizes = new int[] { 3 };  // Number of agents
+                int[] agentListSizes = new int[] { 10 };  // Number of agents
 
 
-                int[] obstaclesPercents = new int[] { 10 };   // Randomly allocatade obstacles percents
+                int[] obstaclesPercents = new int[] { 30 };   // Randomly allocatade obstacles percents
                 me.RunExperimentSet(gridSizes, agentListSizes, obstaclesPercents, instances);
             }
             else if (runDragonAge == true)
@@ -339,7 +341,7 @@ namespace CPF_experiment
             {
 
                 Console.WriteLine();
-                me.RunInstance("Instance-4-13-4-46");
+                me.RunInstance("test");
             }
             Console.WriteLine("*********************THE END**************************");
             Console.ReadLine();

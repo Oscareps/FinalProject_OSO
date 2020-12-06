@@ -14,8 +14,9 @@ namespace CPF_experiment
         MinCostFlow solution;
         Move goalState;
         MAM_ProblemInstance problemInstance;
-        List<TimedMove>[] plan;
+        List<List<TimedMove>> plan;
         long mcmfTime;
+        int solutionCost;
 
         public OGAM_Run(MAM_ProblemInstance instance, Move goalstate)
         {
@@ -25,30 +26,82 @@ namespace CPF_experiment
             this.timer = null;
             this.mcmfTime = -1;
             this.plan = null;
+            this.solutionCost = -1;
         }
 
         public long solve()
         {
             // Independence Detection
+            List<List<TimedMove>> nonConflictsPaths = null;
+            IndependentDetection id = new IndependentDetection(this.problemInstance, this.goalState);
+            MAM_AgentState[] newStartPositions = id.Detect(out nonConflictsPaths);
+            if (newStartPositions.Length != 0)
+            {
+                this.problemInstance = problemInstance.ReplanProblem(newStartPositions);
+                this.reducer = new CFMAM_MCMF_Reducer(this.problemInstance, this.goalState);
+                reducer.reduce();
+                if (reducer.outputProblem == null)
+                    return -1;
+                MinCostMaxFlow mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
+                timer = Stopwatch.StartNew();
+                solution = mcmfSolver.SolveMinCostFlow();
+                List<TimedMove>[] partialPlan = this.reducer.GetCFMAMSolution(this.solution, this.mcmfTime, true);
+                timer.Stop();
+                this.plan = mergePlans(partialPlan, nonConflictsPaths);
+                this.mcmfTime = timer.ElapsedMilliseconds;
+                this.solutionCost = sumSolutionCost(nonConflictsPaths);
+            }
+            else
+            {
+                this.plan = nonConflictsPaths;
+                this.solutionCost = sumSolutionCost(nonConflictsPaths);
+            }
 
-
-            this.reducer = new CFMAM_MCMF_Reducer(this.problemInstance, this.goalState);
-            reducer.reduce();
-            if (reducer.outputProblem == null)
-                return -1;
-            MinCostMaxFlow mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
-            timer = Stopwatch.StartNew();
-            solution = mcmfSolver.SolveMinCostFlow();
-            plan = this.reducer.GetCFMAMSolution(this.solution, this.mcmfTime, true);
-            timer.Stop();
-            this.mcmfTime = timer.ElapsedMilliseconds;
-            return solution.OptimalCost();
+            return this.solutionCost;
         }
 
-        internal string getPlan(bool printPath = true)
+        private int sumSolutionCost(List<List<TimedMove>> nonConflictsPaths)
         {
-            // TODO: implement to string of plan
-            return "";
+            int cost = 0;
+            foreach (List<TimedMove> path in nonConflictsPaths)
+                cost += path.Count - 1;
+            return cost;
+        }
+
+        private List<List<TimedMove>> mergePlans(List<TimedMove>[] partialPlan, List<List<TimedMove>> nonConflictsPaths)
+        {
+            nonConflictsPaths.AddRange(partialPlan);
+            return nonConflictsPaths;
+        }
+
+        public String getPlan()
+        {
+            // TODO: implement to string of plan. check implemntation
+            List<List<TimedMove>> pathList = new List<List<TimedMove>>();
+            int agentIndex = 0;
+            String res = "";
+
+            res += "Meeting Point: " + this.goalState.ToString();
+            res += "\nCost: " + this.solutionCost + "\n";
+
+            this.plan.ForEach(path => {
+            res += "s" + agentIndex + ": " + getAgentPath(path) + "\n";
+                agentIndex++;
+            });
+            return res;
+        }
+
+        private string getAgentPath(List<TimedMove> path)
+        {
+            string agentPath = "";
+            for(int i=0; i<path.Count; i++)
+            {
+                agentPath += path[i];
+                if (i != path.Count - 1)
+                    agentPath += "->";
+            }
+
+            return agentPath;
         }
     }
 }

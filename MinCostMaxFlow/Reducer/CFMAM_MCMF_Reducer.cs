@@ -63,7 +63,7 @@ namespace CPF_experiment
         public List<TimedMove>[] GetCFMAMSolution(MinCostFlow mcmfSolution, long mcmfTime, bool printPath = false)
         {
             Stack<NFReducerNode>[] paths = new Stack<NFReducerNode>[startPositions.Length];
-            Stack<NFReducerNode[]>[] nodesForEachTime = new Stack<NFReducerNode[]>[this.T];
+            Stack<NFReducerNode[]>[] nodesForEachTime = new Stack<NFReducerNode[]>[this.T + 1];
 
             for(int i=0; i<nodesForEachTime.Length; i++)
                 nodesForEachTime[i] = new Stack<NFReducerNode[]>();
@@ -217,7 +217,7 @@ namespace CPF_experiment
             NFReducerNode superSink = new NFReducerNode(-1, -1, -1);
             NFNodes.Add(superSink);
 
-            ReducerOpenList openList = new ReducerOpenList();
+            ReducerOpenList<NFReducerNode> openList = new ReducerOpenList<NFReducerNode>();
             openList.Enqueue(new NFReducerNode(0, goalState.x, goalState.y));
             while (openList.Count != 0)
             {
@@ -294,7 +294,7 @@ namespace CPF_experiment
         /// <param name="node"> Node to discover neighbors to </param>
         /// <param name="openList"> linked list containing all of the unhandled nodes. recieved to check that neighboor is not already discovered </param>
         /// <returns> List of all node neighboors </returns>
-        private LinkedList<NFReducerNode> GetSons(NFReducerNode node, ReducerOpenList openList)
+        private LinkedList<NFReducerNode> GetSons(NFReducerNode node, ReducerOpenList<NFReducerNode> openList)
         {
             LinkedList<NFReducerNode> sons = new LinkedList<NFReducerNode>();
 
@@ -320,7 +320,7 @@ namespace CPF_experiment
             return sons;
         }
 
-        private void CollectSon(ReducerOpenList openList, LinkedList<NFReducerNode> sons, int nodeTime, int x, int y)
+        private void CollectSon(ReducerOpenList<NFReducerNode> openList, LinkedList<NFReducerNode> sons, int nodeTime, int x, int y)
         {
             NFReducerNode son = new NFReducerNode(nodeTime, x, y);
             if (openList.Contains(son))

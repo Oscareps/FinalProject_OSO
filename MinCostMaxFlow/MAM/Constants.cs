@@ -7,7 +7,7 @@ namespace CPF_experiment
         //public static int MAX_TIME = 600000;
         public static int MAX_TIME = int.MaxValue;
 
-        public static long MCMF_MAX_TIME = 2000;
+        public static long MCMF_MAX_TIME = 10000;
         
         /// <summary>
         /// The cost that is set to the algorithms when all the states have been expanded and no goal was found 

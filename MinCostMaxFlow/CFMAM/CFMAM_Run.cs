@@ -207,6 +207,10 @@ namespace CPF_experiment
             MAM_ProblemInstance problem = new MAM_ProblemInstance();
             problem = new MAM_ProblemInstance();
             problem.Init(aStart, grid);
+            IndependentDetection id = new IndependentDetection(problem, problem.m_vAgents[0].lastMove);
+            List<List<TimedMove>> connectionCheck = new List<List<TimedMove>>();
+            if (id.bfsToStartPositions(problem.m_vAgents[0].lastMove).Count != problem.m_vAgents.Length)
+                problem = GenerateProblemInstance(gridSize, agentsNum, obstaclesNum);
             return problem;
         }
 
@@ -286,7 +290,10 @@ namespace CPF_experiment
             MAM_ProblemInstance problem = new MAM_ProblemInstance();
             problem.parameters[MAM_ProblemInstance.GRID_NAME_KEY] = Path.GetFileNameWithoutExtension(mapFileName);
             problem.Init(aStart, grid);
-
+            IndependentDetection id = new IndependentDetection(problem, problem.m_vAgents[0].lastMove);
+            List<List<TimedMove>> connectionCheck = new List<List<TimedMove>>();
+            if (id.bfsToStartPositions(problem.m_vAgents[0].lastMove).Count != problem.m_vAgents.Length)
+                problem = GenerateDragonAgeProblemInstance(mapFileName, agentsNum);
             return problem;
         }
 
@@ -313,10 +320,6 @@ namespace CPF_experiment
             Debug.WriteLine("Solving " + instance);
             solveWithCFFMMStar(instance);
             solveWithCBSMMStar(instance);
-            int cbsCost = CBSMMStarSolvers[0].GetSolutionCost();
-            int imsCost = CFMMStarSolvers[0].GetSolutionSOCCost();
-            if (cbsCost != imsCost)
-                throw new Exception("Inconsistency between algorithms in instance " + instance.fileName);
 
             return true;
         }
