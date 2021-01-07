@@ -116,11 +116,11 @@ namespace CPF_experiment
             //this.topMost = this.SetGlobals();
 
             this.minDepth = minDepth;
-            CbsNode root = new CbsNode(instance.m_vAgents.Length, this); // Problem instance and various strategy data is all passed under 'this'.
+            CbsNode root = new CbsNode(this); // Problem instance and various strategy data is all passed under 'this'.
             // Solve the root node - Solve with MMStar, and find conflicts
-            bool solved = root.Solve();
+            root.Solve();
             
-            if (solved && root.totalCost <= this.maxCost)
+            if (root.totalCost <= this.maxCost)
             {
                 this.openList.Add(root);
                 this.highLevelGenerated++;
@@ -516,16 +516,12 @@ namespace CPF_experiment
                     node.agentBExpansion = CbsNode.ExpansionState.EXPANDED;
                 
                 var newConstraint = new CbsConstraint(conflict, instance, doLeftChild);
-                CbsNode child = new CbsNode(node, newConstraint, conflictingAgentIndex);
+                CbsNode child = new CbsNode(node, newConstraint);
 
                 if (closedList.ContainsKey(child) == false)
                 {
 
-                    bool success = child.Solve();
-
-                    if (success == false)
-                        return null; // A timeout probably occured
-
+                    child.Solve();
                     return child;
                 }
                 else

@@ -17,14 +17,10 @@ namespace CPF_experiment
 
         public List<CbsConflict> nodeConflicts;
 
-        /// For each agent in the problem instance, maps agent _nums_ of agents it collides with to the time bias of their first collision. (for range conflict)
-        /// </summary>
         private int binaryHeapIndex;
         public CbsConflict conflict;
         public CbsConstraint constraint;
-        /// <summary>
-        /// Forcing an agent to be at a certain place at a certain time
-        /// </summary>
+
         public CbsNode prev;
         public ushort depth;
 
@@ -34,18 +30,26 @@ namespace CPF_experiment
             DEFERRED,
             EXPANDED
         }
+
         /// <summary>
         /// For partial expansion
         /// </summary>
         public ExpansionState agentAExpansion;
+
         /// <summary>
         /// For partial expansion
         /// </summary>
         public ExpansionState agentBExpansion;
 
+        private bool isGoal = false;
+
         protected CFM_CBS cbs;
 
-        public CbsNode(int numberOfAgents, CFM_CBS cbs, ushort[] agentsGroupAssignment = null)
+        /// <summary>
+        /// Root of CBS tree
+        /// </summary>
+        /// <param name="cbs"></param>
+        public CbsNode(CFM_CBS cbs)
         {
             this.cbs = cbs;
             mamPlan = null;
@@ -64,8 +68,7 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="father"></param>
         /// <param name="newConstraint"></param>
-        /// <param name="agentToReplan"></param>
-        public CbsNode(CbsNode father, CbsConstraint newConstraint, int agentToReplan)
+        public CbsNode(CbsNode father, CbsConstraint newConstraint)
         {
             mamPlan = null;
             mamCost = -1;
@@ -80,55 +83,21 @@ namespace CPF_experiment
         }
 
         /// <summary>
-        /// Child from merge action constructor. FIXME: Code dup with previous constructor.
-        /// </summary>
-        /// <param name="father"></param>
-        /// <param name="mergeGroupA"></param>
-        /// <param name="mergeGroupB"></param>
-        public CbsNode(CbsNode father, int mergeGroupA, int mergeGroupB)
-        {
-            mamPlan = null;
-            mamCost = -1;
-            this.nodeConflicts = null;
-           
-            this.prev = father;
-            this.constraint = null;
-            this.depth = (ushort)(this.prev.depth + 1);
-            this.agentAExpansion = ExpansionState.NOT_EXPANDED;
-            this.agentBExpansion = ExpansionState.NOT_EXPANDED;
-            this.cbs = father.cbs;
-
-        }
-
-        /// <summary>
-        /// Solves the entire node - finds a plan for every agent group.
-        /// Since this method is only called for the root of the constraint tree, every agent is in its own group.
+        /// Solves the entire node
         /// </summary>
         /// <returns></returns>
-        public bool Solve()
+        public void Solve()
         {
             this.totalCost = 0;
             MAM_ProblemInstance problem = this.cbs.GetProblemInstance();
-            HashSet<CbsConstraint> newConstraints = this.GetConstraints(); // Probably empty as this is probably the root of the CT.
-
-            // Constraints initiated with the problem instance
-            //var constraints = (HashSet_U<CbsConstraint>)problem.parameters[MAPF_CBS.CONSTRAINTS];
+            HashSet<CbsConstraint> newConstraints = this.GetConstraints();
 
             var constraints = new HashSet_U<CbsConstraint>();
-
-
-            Dictionary<int, int> agentsWithConstraints = null;
-            if (constraints.Count != 0)
-            {
-                int maxConstraintTimeStep = constraints.Max<CbsConstraint>(constraint => constraint.time);
-                agentsWithConstraints = constraints.Select<CbsConstraint, int>(constraint => constraint.agentNum).Distinct().ToDictionary<int, int>(x => x); // ToDictionary because there's no ToSet...
-            }
-
+            // Constraints initiated with the problem instance
+            if (problem.parameters.ContainsKey(CFM_CBS.CONSTRAINTS))
+                constraints = (HashSet_U<CbsConstraint>)problem.parameters[CFM_CBS.CONSTRAINTS];
 
             constraints.Join(newConstraints);
-
-            // This mechanism of adding the constraints to the possibly pre-existing constraints allows having
-            // layers of CBS solvers, each one adding its own constraints and respecting those of the solvers above it.
 
             // Solve using MMMStar
 
@@ -142,16 +111,13 @@ namespace CPF_experiment
 
             this.nodeConflicts = gatherConflicts();
 
-
-
-            //if(MAM_Run.toPrint)
-            //    printConflicts(allSingleAgentPlans);
-
-
             this.isGoal = this.nodeConflicts.Count == 0;
-            return true;
         }
 
+        /// <summary>
+        /// Find conflicts between agents in MMStar solution
+        /// </summary>
+        /// <returns>List of conflicts of the node</returns>
         private List<CbsConflict> gatherConflicts()
         {
             nodeConflicts = new List<CbsConflict>();
@@ -175,6 +141,11 @@ namespace CPF_experiment
             return nodeConflicts;
         }
 
+        /// <summary>
+        /// Import CBS constraints to a MMStar constraints
+        /// </summary>
+        /// <param name="constraints">HashSet of CBS constraints</param>
+        /// <returns>HashSet of MMStar constraints</returns>
         private HashSet<MMStarConstraint> importCBSConstraintsToMMStarConstraints(HashSet_U<CbsConstraint> constraints)
         {
             HashSet<MMStarConstraint> mConstraints = new HashSet<MMStarConstraint>();
@@ -183,131 +154,8 @@ namespace CPF_experiment
             return mConstraints;
         }
 
-        private void printLinkedList(LinkedList<List<Move>> toPrint, bool writeToFile = false)
-        {
-            if (toPrint.Count == 0)
-                return;
-            PrintLine(writeToFile);
-            LinkedListNode<List<Move>> node = toPrint.First;
-            string[] columns = new string[node.Value.Count + 1];
-            columns[0] = "";
-            for (int agentNumber = 1; agentNumber < node.Value.Count + 1; agentNumber++)
-            {
-                columns[agentNumber] = (agentNumber - 1).ToString();
-
-            }
-            node = toPrint.First;
-            PrintRow(writeToFile, columns);
-            PrintLine(writeToFile);
-
-            int time = 0;
-            while (node != null)
-            {
-                columns = new string[node.Value.Count + 1];
-                columns[0] = time.ToString();
-                time++;
-                List<Move> currentMoves = node.Value;
-                for (int i = 0; i < currentMoves.Count; i++)
-                {
-                    Move currentMove = currentMoves[i];
-                    columns[i + 1] = currentMove.x + "," + currentMove.y;
-                }
-                PrintRow(writeToFile, columns);
-                node = node.Next;
-            }
-            PrintLine(writeToFile);
-        }
-        static int tableWidth = 200;
-
-        static void PrintLine(bool writeToFile)
-        {
-            if (!writeToFile)
-                Console.WriteLine(new string('-', tableWidth));
-            else
-            {
-                string pathDesktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string filePath = pathDesktop + "\\RobustLog.txt";
-                using (StreamWriter file = File.AppendText(filePath))
-                //using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath))
-                {
-                    file.WriteLine(new string('-', tableWidth));
-                }
-            }
-
-        }
-
-        static void PrintRow(bool writeToFile, params string[] columns)
-        {
-            int width = (tableWidth - columns.Length) / columns.Length;
-            string row = "|";
-
-            foreach (string column in columns)
-            {
-                row += AlignCentre(column, width) + "|";
-            }
-            if (!writeToFile)
-                Console.WriteLine(row);
-            else
-            {
-                string pathDesktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string filePath = pathDesktop + "\\RobustLog.txt";
-                using (StreamWriter file = File.AppendText(filePath))
-                {
-                    file.WriteLine(row);
-                }
-            }
-
-        }
-
-        static string AlignCentre(string text, int width)
-        {
-            text = text.Length > width ? text.Substring(0, width - 3) + "..." : text;
-
-            if (string.IsNullOrEmpty(text))
-            {
-                return new string(' ', width);
-            }
-            else
-            {
-                return text.PadRight(width - (width - text.Length) / 2).PadLeft(width);
-            }
-        }
-
-        private bool listContainsZeros(Dictionary<int, List<int>> list)
-        {
-            foreach (KeyValuePair<int, List<int>> item in list)
-                foreach(int singleItem in item.Value)
-                    if (singleItem == 0)
-                        return true;
-            return false;
-        }
-
-        /// <summary>
-        /// Used to preserve state of conflict iteration.
-        /// </summary>
-        private IEnumerator<CbsConflict> nextConflicts;
-
-        /// <summary>
-        /// The iterator holds the state of the generator, with all the different queues etc - a lot of memory.
-        /// We also clear the MDDs that were built - if no child uses them, they'll be garbage-collected.
-        /// </summary>
-        public void ClearConflictChoiceData()
-        {
-            this.nextConflicts = null;
-        }
-
-        /// Returns whether another conflict was found
-        public bool ChooseNextConflict()
-        {
-            bool hasNext = this.nextConflicts.MoveNext();
-            if (hasNext)
-                this.conflict = this.nextConflicts.Current;
-            return hasNext;
-        }
-
         /// <summary>
         /// Chooses an internal conflict to work on.
-        /// Resets conflicts iteration if it's used.
         /// </summary>
         public void ChooseConflict()
         {
@@ -318,28 +166,14 @@ namespace CPF_experiment
         }
 
         /// <summary>
-        /// Assuming the groups conflict, find the specific agents that conflict.
-        /// Also sets largerConflictingGroupSize.
+        /// Conflict getter
         /// </summary>
-        /// <param name="aConflictingGroupMemberIndex"></param>
-        /// <param name="bConflictingGroupMemberIndex"></param>
-        /// <param name="time"></param>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        private void FindConflicting(int aConflictingGroupMemberIndex, int bConflictingGroupMemberIndex, int time, out int a, out int b,
-                                     ISet<int>[] groups = null)
-        {
-            a = aConflictingGroupMemberIndex;
-            b = bConflictingGroupMemberIndex;
-        }
-
+        /// <returns>The selected conflict</returns>
         public CbsConflict GetConflict()
         {
             return this.conflict;
         }
 
-        
         /// <summary>
         /// Uses the group assignments and the constraints.
         /// </summary>
@@ -391,8 +225,6 @@ namespace CPF_experiment
             this.mamPlan = null;
         }
 
-        
-
         public int CompareTo(IBinaryHeapItem item)
         {
             CbsNode other = (CbsNode)item;
@@ -401,6 +233,10 @@ namespace CPF_experiment
             return (int)(this.mamCost - other.mamCost);
         }
 
+        /// <summary>
+        /// Goes up on the conflicts tree and collects all of the conflicts of the node
+        /// </summary>
+        /// <returns>List of constraints of the node</returns>
         public HashSet<CbsConstraint> GetConstraints()
         {
             var constraints = new HashSet<CbsConstraint>();
@@ -439,8 +275,6 @@ namespace CPF_experiment
         {
             return this.mamPlan;
         }          
-
-        private bool isGoal = false;
 
         public bool GoalTest() {
             return isGoal;
