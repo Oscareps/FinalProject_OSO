@@ -318,8 +318,8 @@ namespace CPF_experiment
 
             int instances = 10;
 
-            bool runDragonAge = true;
-            bool runGrids = false;
+            bool runDragonAge = false;
+            bool runGrids = true;
             bool runMazesWidth1 = false;
             bool runSpecific = false;
 
