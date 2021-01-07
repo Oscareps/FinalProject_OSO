@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace CPF_experiment
 {
-    public class MAPF_CBS : ICbsSolver
+    public class CFM_CBS : ICbsSolver
     {
         /// <summary>
         /// The key of the constraints list used for each CBS node
@@ -85,7 +85,7 @@ namespace CPF_experiment
         }
 
 
-        public MAPF_CBS()
+        public CFM_CBS()
         {
             this.closedList = new Dictionary<CbsNode, CbsNode>();
             this.openList = new MAPF_OpenList(this);
@@ -318,9 +318,6 @@ namespace CPF_experiment
 
                 this.addToGlobalConflictCount(currentNode.GetConflict()); // TODO: Make CBS_GlobalConflicts use nodes that do this automatically after choosing a conflict
 
-                if (debug)
-                    currentNode.Print();
-
                 if (currentNode.totalCost > currentCost) // Needs to be here because the goal may have a cost unseen before
                 {
                     currentCost = currentNode.totalCost;
@@ -472,7 +469,6 @@ namespace CPF_experiment
         public virtual void Expand(CbsNode node)
         {
             ushort parentCost = node.totalCost;
-            ushort parentH = node.h;
             IList<CbsNode> children = null; // To quiet the compiler
             bool reinsertParent = false; // To quiet the compiler
 
@@ -506,7 +502,6 @@ namespace CPF_experiment
             CbsNode.ExpansionState expansionsState = doLeftChild ? node.agentAExpansion : node.agentBExpansion;
             CbsNode.ExpansionState otherChildExpansionsState = doLeftChild ? node.agentBExpansion : node.agentAExpansion;
             string agentSide = doLeftChild? "left" : "right";
-            int groupSize = node.GetGroupSize(conflictingAgentIndex);
             closedListHitChildCost = -1;
 
             if (expansionsState != CbsNode.ExpansionState.EXPANDED)
@@ -578,11 +573,6 @@ namespace CPF_experiment
         public int GetSolutionDepth() { return this.solutionDepth; }
         
         public long GetMemoryUsed() { return Process.GetCurrentProcess().VirtualMemorySize64; }
-
-        public virtual int[] GetSingleCosts()
-        {
-            return goalNode.allSingleAgentCosts;
-        }
 
         public int GetHighLevelExpanded() { return highLevelExpanded; }
         public int GetHighLevelGenerated() { return highLevelGenerated; }

@@ -81,7 +81,8 @@ namespace CPF_experiment
 
             bool continueFromLastRun = false;
             string[] LastProblemDetails = null;
-            string currentProblemFileName = Directory.GetCurrentDirectory() + "\\MAM_Instances\\current problem-" + Process.GetCurrentProcess().ProcessName;
+            String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "current problem-" + Process.GetCurrentProcess().ProcessName };
+            string currentProblemFileName = Path.Combine(pathElements);
             if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
             {
                 var lastProblemFile = new StreamReader(currentProblemFileName);
@@ -318,8 +319,8 @@ namespace CPF_experiment
 
             int instances = 10;
 
-            bool runDragonAge = true;
-            bool runGrids = false;
+            bool runDragonAge = false;
+            bool runGrids = true;
             bool runMazesWidth1 = false;
             bool runSpecific = false;
 

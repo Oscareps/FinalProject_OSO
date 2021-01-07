@@ -133,7 +133,7 @@ namespace CPF_experiment
             //solvers.Add(CFMMStar_ZeroeH_SOC);
 
             // ***** SOC CBSMMStar Solvers *****
-            CBSMMStarSolvers.Add(new MAPF_CBS());
+            CBSMMStarSolvers.Add(new CFM_CBS());
 
 
             outOfTimeCounters = new int[CFMMStarSolvers.Count + CBSMMStarSolvers.Count];
