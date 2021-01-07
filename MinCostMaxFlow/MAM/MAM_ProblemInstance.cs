@@ -225,7 +225,7 @@ namespace CPF_experiment
             string fileName
         )
         {
-            String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "Inconsistency Check", fileName };
+            String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", fileName };
             TextWriter output = new StreamWriter(Path.Combine(pathElements));
             // Output the instance ID
             if (this.parameters.ContainsKey(MAM_ProblemInstance.GRID_NAME_KEY))
