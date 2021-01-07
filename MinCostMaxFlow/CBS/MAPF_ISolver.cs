@@ -55,7 +55,7 @@ namespace CPF_experiment
         bool isSolved();
     }
 
-    public interface ICbsSolver : MAPF_ISolver, IAccumulatingStatisticsCsvWriter
+    public interface ICbsSolver : MAPF_ISolver
     {
         /// <summary>
         /// 
@@ -63,9 +63,7 @@ namespace CPF_experiment
         /// <param name="problemInstance"></param>
         /// <param name="minDepth">!@# Shoud be more generally called minTimeStep? Because for CBS the depth isn't the time step</param>
         /// <param name="runner"></param>
-        void Setup(MAM_ProblemInstance problemInstance, int minDepth, MAM_Run runner, int minCost);
-        Dictionary<int, int> GetExternalConflictCounts();
-        Dictionary<int, List<int>> GetConflictTimes();
+        void Setup(MAM_ProblemInstance problemInstance, MAM_Run runner);
 
         int GetAccumulatedExpanded();
         int GetAccumulatedGenerated();
