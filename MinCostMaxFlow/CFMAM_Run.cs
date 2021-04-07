@@ -98,39 +98,53 @@ namespace CPF_experiment
             CBSMMStarSolvers = new List<ICbsSolver>();
 
             // FastMap Heuristic
-            /*
             //ISolver
-            MAM_ISolver MMStar_FastMapH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
+            CFMAM_ISolver CFMMStar_FastMapH_Makespan = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
+            CFMAM_ISolver CFMMStar_FastMapH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator FastMapHCalculator = new FastMapHCalculator();
-            MMStar_FastMapH_SOC.SetHeuristic(FastMapHCalculator);
-            */
+            CFMMStar_FastMapH_Makespan.SetHeuristic(FastMapHCalculator);
+            CFMMStar_FastMapH_SOC.SetHeuristic(FastMapHCalculator);
+
 
             // Median Heuristic
             //ISolver
+            CFMAM_ISolver CFMMStar_MedianH_Makespan = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
             CFMAM_ISolver CFMMStar_MedianH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator MedianHCalculator = new MedianHCalculator();
+            CFMMStar_MedianH_Makespan.SetHeuristic(MedianHCalculator);
             CFMMStar_MedianH_SOC.SetHeuristic(MedianHCalculator);
 
             // Clique Heuristic
-
             //ISolver
+            CFMAM_ISolver CFMMStar_CliqueH_Makespan = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
             CFMAM_ISolver CFMMStar_CliqueH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator CliqueHeuristic = new CliqueHCalculator();
+            CFMMStar_CliqueH_Makespan.SetHeuristic(CliqueHeuristic);
             CFMMStar_CliqueH_SOC.SetHeuristic(CliqueHeuristic);
 
 
             // No Heuristic
-
             //ISolver
+            CFMAM_ISolver MMStar_ZeroH_Makespan = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
             CFMAM_ISolver CFMMStar_ZeroeH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
             MAM_HeuristicCalculator ZeroHeuristic = new ZeroHCalculator();
+            MMStar_ZeroH_Makespan.SetHeuristic(ZeroHeuristic);
             CFMMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
 
             // *****  SOC CFMMStar Solvers  *****
+            //solvers.Add(CFMMStar_FastMapH_Makespan);
             //solvers.Add(CFMMStar_FastMapH_SOC);
+
+            //solvers.Add(CFMMStar_MedianH_Makespan);
             //solvers.Add(CFMMStar_MedianH_SOC);
-            CFMMStarSolvers.Add(CFMMStar_CliqueH_SOC);
+
+            CFMMStarSolvers.Add(CFMMStar_CliqueH_Makespan);
+            //CFMMStarSolvers.Add(CFMMStar_CliqueH_SOC);
+
+            //solvers.Add(MMStar_ZeroH_Makespan);
             //solvers.Add(CFMMStar_ZeroeH_SOC);
+
+
 
             // ***** SOC CBSMMStar Solvers *****
             CBSMMStarSolvers.Add(new MAPF_CBS());
