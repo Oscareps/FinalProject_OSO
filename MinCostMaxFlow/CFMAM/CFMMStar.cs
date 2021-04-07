@@ -48,7 +48,7 @@ namespace CPF_experiment
 
         public CFMMStar
         (
-            CostFunction costFunction = CostFunction.SOC
+            CostFunction costFunction
         )
         {
             this.costFunction = costFunction;
@@ -355,6 +355,8 @@ namespace CPF_experiment
         {
             if (costFunction == CostFunction.SOC)
                 return bestSOCCost;
+            if (costFunction == CostFunction.MakeSpan)
+                return bestMakeSpanCost;
             return 0;
         }
 

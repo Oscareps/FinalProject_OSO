@@ -99,11 +99,11 @@ namespace CPF_experiment
 
             // FastMap Heuristic
             //ISolver
-            CFMAM_ISolver CFMMStar_FastMapH_Makespan = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
-            CFMAM_ISolver CFMMStar_FastMapH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
-            MAM_HeuristicCalculator FastMapHCalculator = new FastMapHCalculator();
-            CFMMStar_FastMapH_Makespan.SetHeuristic(FastMapHCalculator);
-            CFMMStar_FastMapH_SOC.SetHeuristic(FastMapHCalculator);
+            //CFMAM_ISolver CFMMStar_FastMapH_Makespan = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
+            //CFMAM_ISolver CFMMStar_FastMapH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
+            //MAM_HeuristicCalculator FastMapHCalculator = new FastMapHCalculator();
+            //CFMMStar_FastMapH_Makespan.SetHeuristic(FastMapHCalculator);
+            //CFMMStar_FastMapH_SOC.SetHeuristic(FastMapHCalculator);
 
 
             // Median Heuristic
@@ -601,7 +601,7 @@ namespace CPF_experiment
             if (solved)
             {
                 Console.WriteLine();
-                Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionSOCCost());
+                Console.WriteLine("Total {0} cost: {1}",solver.GetCostFunction(), solver.GetSolutionSOCCost());
             }
             else
             {
