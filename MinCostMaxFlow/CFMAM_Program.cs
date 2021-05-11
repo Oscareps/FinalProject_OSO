@@ -317,12 +317,12 @@ namespace CPF_experiment
 
             CFMAM_Program.onlyReadInstances = false;
 
-            int instances = 10;
+            int instances = 1;
 
             bool runDragonAge = false;
-            bool runGrids = true;
+            bool runGrids = false;
             bool runMazesWidth1 = false;
-            bool runSpecific = false;
+            bool runSpecific = true;
 
             if (runGrids == true)
             {

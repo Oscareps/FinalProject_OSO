@@ -365,7 +365,7 @@ namespace CPF_experiment
         {
             Move move = new Move(currentNode.lastMove);
             OGAM_Run low_level = new OGAM_Run(this.GetProblemInstance(), move);
-            long nodeCost = low_level.solve();
+            long nodeCost = low_level.solve(this.costFunction);
             //Console.WriteLine(low_level.getPlan(false));
             if (nodeCost == -1)
                 throw new TimeoutException("OGAM timeout");

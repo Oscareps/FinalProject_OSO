@@ -52,7 +52,7 @@ namespace CPF_experiment
 
             Move goalstate = new Move(2, 2);
             CFMAM_MCMF_Reducer reducer = new CFMAM_MCMF_Reducer(instance, goalstate);
-            reducer.reduce();
+            reducer.reduce(CFMMStar.CostFunction.SOC);
             MinCostMaxFlow mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
             Stopwatch timer = Stopwatch.StartNew();
             MinCostFlow solution = mcmfSolver.SolveMinCostFlow();
@@ -147,7 +147,7 @@ namespace CPF_experiment
 
                             Move goalState = FixProblemInstance(instance);
                             CFMAM_MCMF_Reducer reducer = new CFMAM_MCMF_Reducer(instance, goalState);
-                            reducer.reduce();
+                            reducer.reduce(CFMMStar.CostFunction.SOC);
                             MinCostMaxFlow mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
                             Stopwatch timer = Stopwatch.StartNew();
                             MinCostFlow solution = mcmfSolver.SolveMinCostFlow();

@@ -114,7 +114,7 @@ namespace CPF_experiment
             // Clique Heuristic
 
             //ISolver
-            CFMAM_ISolver CFMMStar_CliqueH_SOC = new CFMMStar(CFMMStar.CostFunction.SOC);
+            CFMAM_ISolver CFMMStar_CliqueH_SOC = new CFMMStar(CFMMStar.CostFunction.MakeSpan);
             MAM_HeuristicCalculator CliqueHeuristic = new CliqueHCalculator();
             CFMMStar_CliqueH_SOC.SetHeuristic(CliqueHeuristic);
 

@@ -48,7 +48,7 @@ namespace CPF_experiment
             int solveStatus = (int)minCostFlow.SolveMaxFlowWithMinCost();
             if (solveStatus == (int)MinCostFlow.Status.OPTIMAL)
             {
-                //PrintNetworkFlowSolution(minCostFlow);
+                PrintNetworkFlowSolution(minCostFlow);
                 return minCostFlow;
             }
             else
