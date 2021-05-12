@@ -29,7 +29,7 @@ namespace CPF_experiment
             this.solutionCost = -1;
         }
 
-        public long solve()
+        public long solve(CFMMStar.CostFunction costFunction)
         {
             // Independence Detection
             List<List<TimedMove>> nonConflictsPaths = null;
@@ -39,25 +39,51 @@ namespace CPF_experiment
             {
                 this.problemInstance = problemInstance.ReplanProblem(newStartPositions);
                 this.reducer = new CFMAM_MCMF_Reducer(this.problemInstance, this.goalState);
-                reducer.reduce();
+                reducer.reduce(costFunction);
                 if (reducer.outputProblem == null)
                     return -1;
                 MinCostMaxFlow mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
                 timer = Stopwatch.StartNew();
                 solution = mcmfSolver.SolveMinCostFlow();
                 List<TimedMove>[] partialPlan = this.reducer.GetCFMAMSolution(this.solution, this.mcmfTime, true);
+                if (costFunction == CFMMStar.CostFunction.MakeSpan)
+                {
+                    while(!isPathForEachAgent(partialPlan))
+                    {
+                        this.reducer.addNetworkLayer();
+                        mcmfSolver = new MinCostMaxFlow(reducer.outputProblem);
+                        solution = mcmfSolver.SolveMinCostFlow();
+                        partialPlan = this.reducer.GetCFMAMSolution(this.solution, this.mcmfTime, true);
+                    }
+                }
                 timer.Stop();
                 this.plan = mergePlans(partialPlan, nonConflictsPaths);
                 this.mcmfTime = timer.ElapsedMilliseconds;
-                this.solutionCost = sumSolutionCost(nonConflictsPaths);
+                this.solutionCost = calculateCost(this.plan, costFunction);
             }
             else
             {
                 this.plan = nonConflictsPaths;
-                this.solutionCost = sumSolutionCost(nonConflictsPaths);
+                this.solutionCost = calculateCost(this.plan, costFunction);
             }
 
             return this.solutionCost;
+       }
+        
+       private bool isPathForEachAgent(List<TimedMove>[] partialPlan)
+       {
+            for (int i = 0; i < partialPlan.Length; i++)
+                if (partialPlan[i].Count == 0)
+                    return false;
+            return true;
+       }
+
+        private int calculateCost(List<List<TimedMove>> plan, CFMMStar.CostFunction costFunction)
+        {
+            if(costFunction == CFMMStar.CostFunction.SOC)
+                return sumSolutionCost(this.plan);
+            plan.Sort((x, y) => y.Count - x.Count);
+            return plan[0].Count;
         }
 
         private int sumSolutionCost(List<List<TimedMove>> nonConflictsPaths)
