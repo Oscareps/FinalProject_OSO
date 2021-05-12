@@ -103,7 +103,8 @@ namespace CPF_experiment
 
             // FastMap Heuristic
             /*
-            //ISolver             MMStar_FastMapH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
+            //ISolver
+            MAM_ISolver MMStar_FastMapH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
             MAM_ISolver MMStar_FastMapH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
             MAM_HeuristicCalculator FastMapHCalculator = new FastMapHCalculator();
             //MMStar_FastMapH_Makespan.SetHeuristic(FastMapHCalculator);
@@ -111,28 +112,31 @@ namespace CPF_experiment
             */
 
             // Median Heuristic
-            //ISolver             MMStar_MedianH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
+            //ISolver             
+            MAM_ISolver MMStar_MedianH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
             MAM_ISolver MMStar_MedianH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
             MAM_HeuristicCalculator MedianHCalculator = new MedianHCalculator();
-            //MMStar_MedianH_Makespan.SetHeuristic(MedianHCalculator);
-            MMStar_MedianH_SOC.SetHeuristic(MedianHCalculator);
+            MMStar_MedianH_Makespan.SetHeuristic(MedianHCalculator);
+            //MMStar_MedianH_SOC.SetHeuristic(MedianHCalculator);
 
             // Clique Heuristic
-            
-            //ISolver             MMStar_CliqueH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
+
+            //ISolver             
+            MAM_ISolver MMStar_CliqueH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
             MAM_ISolver MMStar_CliqueH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
             MAM_HeuristicCalculator CliqueHeuristic = new CliqueHCalculator();
-            //MMStar_CliqueH_Makespan.SetHeuristic(CliqueHeuristic);
-            MMStar_CliqueH_SOC.SetHeuristic(CliqueHeuristic);
-            
+            MMStar_CliqueH_Makespan.SetHeuristic(CliqueHeuristic);
+            //MMStar_CliqueH_SOC.SetHeuristic(CliqueHeuristic);
+
 
             // No Heuristic
-            
-            //ISolver             MMStar_ZeroH_Makespan   = new MM_Star(MM_Star.CostFunction.MakeSpan);
+
+            //ISolver   
+            MAM_ISolver MMStar_ZeroH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
             MAM_ISolver MMStar_ZeroeH_SOC = new MM_Star(MM_Star.CostFunction.SOC);
             MAM_HeuristicCalculator ZeroHeuristic = new ZeroHCalculator();
-            //MMStar_ZeroH_Makespan.SetHeuristic(ZeroHeuristic);
-            MMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
+            MMStar_ZeroH_Makespan.SetHeuristic(ZeroHeuristic);
+            //MMStar_ZeroeH_SOC.SetHeuristic(ZeroHeuristic);
 
 
             //MAM_ISolver MMStar_LPH_Makespan = new MM_Star(MM_Star.CostFunction.MakeSpan);
@@ -141,14 +145,14 @@ namespace CPF_experiment
 
             // *****  Makespan Solvers  *****
             //solvers.Add(MMStar_FastMapH_Makespan);            
-            //solvers.Add(MMStar_MedianH_Makespan);
-            //solvers.Add(MMStar_CliqueH_Makespan);
-            //solvers.Add(MMStar_ZeroH_Makespan);
+            solvers.Add(MMStar_MedianH_Makespan);
+            solvers.Add(MMStar_CliqueH_Makespan);
+            solvers.Add(MMStar_ZeroH_Makespan);
 
             // *****  SOC Solvers  *****
             //solvers.Add(MMStar_FastMapH_SOC);
             //solvers.Add(MMStar_MedianH_SOC);
-            solvers.Add(MMStar_CliqueH_SOC);
+            //solvers.Add(MMStar_CliqueH_SOC);
             //solvers.Add(MMStar_ZeroeH_SOC);
 
 
@@ -354,7 +358,14 @@ namespace CPF_experiment
                         vAgents2[agentIndex] = new MAM_AgentState(vAgents[agentIndex]);
                     instance.m_vAgents = vAgents2;
 
-                    solutionCost = solvers[i].GetSolutionSOCCost();
+                    if(solvers[i].GetCostFunction() == CostFunction.MakeSpan)
+                    {
+                        solutionCost = solvers[i].GetSolutionMakeSpanCost();
+                    }
+                    else if (solvers[i].GetCostFunction() == CostFunction.SOC)
+                    {
+                        solutionCost = solvers[i].GetSolutionSOCCost();
+                    }
 
                     MAM_Plan plan = null;
                     if (solvers[i].IsSolved()) // Solved successfully
