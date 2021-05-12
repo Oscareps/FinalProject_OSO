@@ -48,7 +48,7 @@ namespace CPF_experiment
 
         public CFMMStar
         (
-            CostFunction costFunction
+            CostFunction costFunction = CostFunction.SOC
         )
         {
             this.costFunction = costFunction;
