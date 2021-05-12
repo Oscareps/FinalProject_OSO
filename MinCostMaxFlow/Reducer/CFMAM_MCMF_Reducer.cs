@@ -37,6 +37,10 @@ namespace CPF_experiment
         private HashSet<NFReducerNode> NFNodes;
 
         public NF_ProblemInstance outputProblem;
+        
+        private List<NFReducerNode> zeroLayer;
+
+        private NFReducerNode superSink;
 
         public CFMAM_MCMF_Reducer(MAM_ProblemInstance problem, Move goalState)
         {
@@ -55,11 +59,42 @@ namespace CPF_experiment
             this.goalState = goalState;
             this.NFNodes = new HashSet<NFReducerNode>();
             this.l = -1;
+            this.T = -1;
             this.edgeCounter = 0;
             this.outputProblem = null;
             NFReducerNode.indexCounter = 0;
+            this.zeroLayer = new List<NFReducerNode>();
         }
+        
+        internal void addNetworkLayer()
+        {
+            ReducerOpenList<NFReducerNode> openList = new ReducerOpenList<NFReducerNode>();
+            this.T++;
+            foreach (NFReducerNode node in this.zeroLayer)
+            {
+                NFNodes.Remove(node);
+                openList.Enqueue(node);
+            }
+            while (openList.Count != 0)
+            {
+                NFReducerNode node = openList.Dequeue();
+                LinkedList<NFReducerNode> nodeSons = new LinkedList<NFReducerNode>();
+                if (node.nodeTime != T)
+                    nodeSons = GetSons(node, openList);
+                foreach (NFReducerNode son in nodeSons)
+                {
+                    son.AddEdgeTo(node);
+                    node.AddEdgeFrom(son);
+                    if (!openList.Contains(son))
+                        openList.Enqueue(son);
+                }
+                if (!NFNodes.Contains(node))
+                    AddAfterDuplicationAndSinkConnection(node);
+            }
 
+            ImportToMCMFAlgorithm();
+        }
+        
         public List<TimedMove>[] GetCFMAMSolution(MinCostFlow mcmfSolution, long mcmfTime, bool printPath = false)
         {
             Stack<NFReducerNode>[] paths = new Stack<NFReducerNode>[startPositions.Length];
@@ -100,8 +135,14 @@ namespace CPF_experiment
             {
                 if (paths[i] == null)
                 {
-                    paths[i] = new Stack<NFReducerNode>();
-                    paths[i].Push(new NFReducerNode(0, goalState.x, goalState.y));
+                    if (isAgentStartedOnGoalNode())
+                    {
+                        paths[i] = new Stack<NFReducerNode>();
+                        paths[i].Push(new NFReducerNode(0, goalState.x, goalState.y));
+                    }
+                    else
+                        paths = paths.Where(p => p != null).ToArray();
+                    break;
                 }
             }
 
@@ -141,6 +182,14 @@ namespace CPF_experiment
             return agentPaths;
         }
 
+         private bool isAgentStartedOnGoalNode()
+        {
+            foreach (Move startPosition in this.startPositions)
+                if (startPosition.x == this.goalState.x && startPosition.y == this.goalState.y)
+                    return true;
+            return false;
+        }
+        
         private NFReducerNode GetNode(int index)
         {
             foreach(NFReducerNode node in NFNodes)
@@ -151,10 +200,10 @@ namespace CPF_experiment
             return null;
         }
 
-        public void reduce()
+        public void reduce(CFMMStar.CostFunction costFunction)
         {
             timer = Stopwatch.StartNew();
-            if(CreateNFProblem())
+            if(CreateNFProblem(costFunction))
                 ImportToMCMFAlgorithm();
             timer.Stop();
         }
@@ -212,18 +261,18 @@ namespace CPF_experiment
         /// <summary>
         /// Creates an initial network flow problem reduced from the given problem
         /// </summary>
-        private bool CreateNFProblem()
+        private bool CreateNFProblem(CFMMStar.CostFunction costFunction)
         {
-            NFReducerNode superSink = new NFReducerNode(-1, -1, -1);
-            NFNodes.Add(superSink);
+            this.superSink = new NFReducerNode(-1, -1, -1);
+            NFNodes.Add(this.superSink);
 
             ReducerOpenList<NFReducerNode> openList = new ReducerOpenList<NFReducerNode>();
             openList.Enqueue(new NFReducerNode(0, goalState.x, goalState.y));
             while (openList.Count != 0)
             {
 
-                if (timer.ElapsedMilliseconds > Constants.MCMF_MAX_TIME)
-                    return false;
+                //if (timer.ElapsedMilliseconds > Constants.MCMF_MAX_TIME)
+                //    return false;
 
                 NFReducerNode node = openList.Dequeue();
                 LinkedList<NFReducerNode> nodeSons = new LinkedList<NFReducerNode>();
@@ -243,17 +292,19 @@ namespace CPF_experiment
                     if (l == -1 && startPositionsToDiscover == 0)
                     {
                         l = son.nodeTime;
-                        T = l + startPositions.Length - 1;
-                    }
+                        if (costFunction == CFMMStar.CostFunction.SOC)
+                            T = l + startPositions.Length - 1;
+                        else
+                            T = l;                    }
                 }
                 if (!NFNodes.Contains(node))
-                    AddAfterDuplicationAndSinkConnection(node, superSink);
+                    AddAfterDuplicationAndSinkConnection(node);
             }
 
             return true;
         }
 
-        private void AddAfterDuplicationAndSinkConnection(NFReducerNode node, NFReducerNode megaSink)
+        private void AddAfterDuplicationAndSinkConnection(NFReducerNode node)
         {
             if (node.nodeTime != 0 && node.nodeTime != T)
             {
@@ -268,18 +319,20 @@ namespace CPF_experiment
                 this.edgeCounter++;
                 if (node.x == goalState.x && node.y == goalState.y)
                 {
-                    node.AddEdgeTo(megaSink);
-                    dupNode.AddEdgeTo(megaSink);
+                    node.AddEdgeTo(this.superSink);
+                    dupNode.AddEdgeTo(this.superSink);
                     this.edgeCounter += 2;
                 }
                 NFNodes.Add(dupNode);
             }
             else
             {
+                if (node.nodeTime == T)
+                    this.zeroLayer.Add(node);
                 edgeCounter += node.edgeTo.Count;
                 if (node.x == goalState.x && node.y == goalState.y)
                 {
-                    node.AddEdgeTo(megaSink);
+                    node.AddEdgeTo(this.superSink);
                     this.edgeCounter++;
                 }
             }
