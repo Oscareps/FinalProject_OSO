@@ -55,6 +55,12 @@ namespace CPF_experiment
         /// <summary>
         /// Gets the delta of (actual solution cost - first state heuristics)
         /// </summary>
+        /// 
+        /// 
+        /// <summary>
+        /// Returns the cost of the solution found, or error codes otherwise.
+        /// </summary>
+        int GetSolutionCost();
         int GetSolutionDepth();
         long GetMemoryUsed();
         int GetExpanded();

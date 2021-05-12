@@ -83,7 +83,7 @@ namespace CPF_experiment
             if(costFunction == CFMMStar.CostFunction.SOC)
                 return sumSolutionCost(this.plan);
             plan.Sort((x, y) => y.Count - x.Count);
-            return plan[0].Count;
+            return plan[0].Count-1;
         }
 
         private int sumSolutionCost(List<List<TimedMove>> nonConflictsPaths)

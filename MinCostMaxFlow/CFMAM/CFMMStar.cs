@@ -373,7 +373,11 @@ namespace CPF_experiment
                 throw new TimeoutException("OGAM timeout");
             if (nodeCost < this.getBestCost())
             {
-                this.bestSOCCost = (int)nodeCost;
+                if (costFunction == CostFunction.SOC)
+                    this.bestSOCCost = (int)nodeCost;
+                if (costFunction == CostFunction.MakeSpan)
+                    this.bestMakeSpanCost = (int)nodeCost;
+
                 this.bestCostLocation = currentNode.lastMove;
                 this.solution = low_level;
             }
@@ -467,7 +471,14 @@ namespace CPF_experiment
             return (CFMAM_Run.CostFunction)costFunction;
         }
 
-
+        public int GetSolutionCost()
+        {
+            if (costFunction == CostFunction.SOC)
+                return GetSolutionSOCCost();
+            else if (costFunction == CostFunction.MakeSpan)
+                return GetSolutionMakeSpanCost();
+            return -1;
+        }
     }
 
 }

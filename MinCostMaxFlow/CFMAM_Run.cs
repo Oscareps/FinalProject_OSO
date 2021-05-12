@@ -135,13 +135,13 @@ namespace CPF_experiment
             //solvers.Add(CFMMStar_FastMapH_Makespan);
             //solvers.Add(CFMMStar_FastMapH_SOC);
 
-            //solvers.Add(CFMMStar_MedianH_Makespan);
+            CFMMStarSolvers.Add(CFMMStar_MedianH_Makespan);
             //solvers.Add(CFMMStar_MedianH_SOC);
 
-            //CFMMStarSolvers.Add(CFMMStar_CliqueH_Makespan);
+            CFMMStarSolvers.Add(CFMMStar_CliqueH_Makespan);
             //CFMMStarSolvers.Add(CFMMStar_CliqueH_SOC);
 
-            //solvers.Add(MMStar_ZeroH_Makespan);
+            CFMMStarSolvers.Add(MMStar_ZeroH_Makespan);
             //solvers.Add(CFMMStar_ZeroeH_SOC);
 
 
@@ -547,7 +547,7 @@ namespace CPF_experiment
                         vAgents2[agentIndex] = new MAM_AgentState(vAgents[agentIndex]);
                     instance.m_vAgents = vAgents2;
 
-                    solutionCost = CFMMStarSolvers[i].GetSolutionSOCCost();
+                    solutionCost = CFMMStarSolvers[i].GetSolutionCost();
 
                     String plan = null;
                     if (CFMMStarSolvers[i].IsSolved()) // Solved successfully
@@ -601,7 +601,7 @@ namespace CPF_experiment
             if (solved)
             {
                 Console.WriteLine();
-                Console.WriteLine("Total {0} cost: {1}",solver.GetCostFunction(), solver.GetSolutionSOCCost());
+                Console.WriteLine("Total {0} cost: {1}",solver.GetCostFunction(), solver.GetSolutionCost());
             }
             else
             {
