@@ -138,7 +138,7 @@ namespace CPF_experiment
             //solvers.Add(CFMMStar_MedianH_Makespan);
             //solvers.Add(CFMMStar_MedianH_SOC);
 
-            CFMMStarSolvers.Add(CFMMStar_CliqueH_Makespan);
+            //CFMMStarSolvers.Add(CFMMStar_CliqueH_Makespan);
             //CFMMStarSolvers.Add(CFMMStar_CliqueH_SOC);
 
             //solvers.Add(MMStar_ZeroH_Makespan);
