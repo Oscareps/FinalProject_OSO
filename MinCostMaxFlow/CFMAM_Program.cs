@@ -118,7 +118,7 @@ namespace CPF_experiment
                             }
                             if (runner.outOfTimeCounters.Length != 0 &&
                                 runner.outOfTimeCounters.Sum() == runner.outOfTimeCounters.Length * Constants.MAX_FAIL_COUNT) // All algs should be skipped
-                                break;
+                                    break;
                             instanceName = "Instance-" + gridSizes[gs] + "-" + obstaclesProbs[obs] + "-" + agentListSizes[ag] + "-" + i;
                             try
                             {
@@ -316,12 +316,12 @@ namespace CPF_experiment
 
             CFMAM_Program.onlyReadInstances = false;
 
-            int instances = 10;
+            int instances = 100;
 
             bool runDragonAge = false;
-            bool runGrids = false;
+            bool runGrids = true;
             bool runMazesWidth1 = false;
-            bool runSpecific = true;
+            bool runSpecific = false;
 
             if (runGrids == true)
             {
@@ -330,7 +330,7 @@ namespace CPF_experiment
                 int[] agentListSizes = new int[] { 3 };  // Number of agents
 
 
-                int[] obstaclesPercents = new int[] { 10 };   // Randomly allocatade obstacles percents
+                int[] obstaclesPercents = new int[] { 20 };   // Randomly allocatade obstacles percents
                 me.RunExperimentSet(gridSizes, agentListSizes, obstaclesPercents, instances);
             }
             else if (runDragonAge == true)

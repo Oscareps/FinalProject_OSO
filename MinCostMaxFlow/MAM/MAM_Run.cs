@@ -78,7 +78,7 @@ namespace CPF_experiment
         /// <summary>
         /// all types of algorithms to be run
         /// </summary>
-        List<MAM_ISolver> solvers;
+        public List<MAM_ISolver> solvers;
 
         /// <summary>
         /// all types of heuristics used
@@ -145,9 +145,9 @@ namespace CPF_experiment
 
             // *****  Makespan Solvers  *****
             //solvers.Add(MMStar_FastMapH_Makespan);            
-            solvers.Add(MMStar_MedianH_Makespan);
+            //solvers.Add(MMStar_MedianH_Makespan);
             solvers.Add(MMStar_CliqueH_Makespan);
-            solvers.Add(MMStar_ZeroH_Makespan);
+            //solvers.Add(MMStar_ZeroH_Makespan);
 
             // *****  SOC Solvers  *****
             //solvers.Add(MMStar_FastMapH_SOC);

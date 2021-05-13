@@ -135,13 +135,13 @@ namespace CPF_experiment
             //solvers.Add(CFMMStar_FastMapH_Makespan);
             //solvers.Add(CFMMStar_FastMapH_SOC);
 
-            CFMMStarSolvers.Add(CFMMStar_MedianH_Makespan);
+            //CFMMStarSolvers.Add(CFMMStar_MedianH_Makespan);
             //solvers.Add(CFMMStar_MedianH_SOC);
 
             CFMMStarSolvers.Add(CFMMStar_CliqueH_Makespan);
             //CFMMStarSolvers.Add(CFMMStar_CliqueH_SOC);
 
-            CFMMStarSolvers.Add(MMStar_ZeroH_Makespan);
+            //CFMMStarSolvers.Add(MMStar_ZeroH_Makespan);
             //solvers.Add(CFMMStar_ZeroeH_SOC);
 
 
@@ -332,14 +332,26 @@ namespace CPF_experiment
 
             // Solve using the different algorithms
             Debug.WriteLine("Solving " + instance);
-            solveWithCFFMMStar(instance);
-            solveWithCBSMMStar(instance);
+            int CFMcost = solveWithCFFMMStar(instance);
+            int CBScost = solveWithCBSMMStar(instance);
+
+            if(CFMcost == CBScost)
+            {
+                Debug.WriteLine("---------------- CFM Cost = CBS Cost =  " + CBScost+ " -----------------------");
+                Debug.WriteLine("");
+
+            }
+            else
+            {
+                throw new Exception("Inconsist Cost");
+            }
 
             return true;
         }
 
-        private void solveWithCBSMMStar(MAM_ProblemInstance instance)
+        private int solveWithCBSMMStar(MAM_ProblemInstance instance)
         {
+            int costConsistency = -1;
             MAM_AgentState[] vAgents = new MAM_AgentState[instance.GetNumOfAgents()];
             for (int agentIndex = 0; agentIndex < instance.GetNumOfAgents(); agentIndex++)
                 vAgents[agentIndex] = new MAM_AgentState(instance.m_vAgents[agentIndex]);
@@ -358,6 +370,9 @@ namespace CPF_experiment
                     instance.m_vAgents = vAgents2;
 
                     solutionCost = CBSMMStarSolvers[i].GetSolutionCost();
+
+                    if (costConsistency == -1) costConsistency = solutionCost;
+                    else if(solutionCost != costConsistency) throw new Exception("Inconsist Cost");
 
                     String plan = null;
                     if (CBSMMStarSolvers[i].isSolved()) // Solved successfully
@@ -384,6 +399,7 @@ namespace CPF_experiment
                     PrintNullStatistics(CFMMStarSolvers[i]);
                 Console.WriteLine();
             }
+            return costConsistency;
         }
 
         private void WriteGivenCBSMMStarProblem(MAM_ProblemInstance instance, ICbsSolver solver, string plan)
@@ -391,8 +407,8 @@ namespace CPF_experiment
             writeToFile(
                 solver.GetName(),                       // solver name
                 planningTime.ToString(),                // planning time 
-                "SOC",                                  // cost function
-                solver.GetSolutionCost().ToString(),    // solution SOC cost
+                "MakeSpan",                                  // cost function
+                solver.GetSolutionCost().ToString(),    // solution  cost
                 instanceId.ToString(),                  // instanceId  
                 instance.fileName,                      // file Name
                 instance.m_vAgents.Length.ToString(),   // #Agents
@@ -409,7 +425,7 @@ namespace CPF_experiment
             string solver,
             string planTime,
             string costFunction,
-            string planSOCCost,
+            string planCost,
             string instanceId,
             string instanceName,
             string agentsCount,
@@ -441,12 +457,13 @@ namespace CPF_experiment
                     temps[4] = "File";
                     temps[5] = "Cost Function";
                     temps[6] = "Solver";
-                    temps[7] = "Heuristic";
-                    temps[8] = "Success";
-                    temps[9] = "Plan SOC";
-                    temps[11] = "Plan time";
-                    temps[12] = "Expansions";
-                    temps[13] = "Generations";
+                    //temps[7] = "Heuristic";
+                    temps[7] = "Success";
+                    temps[8] = "Plan Cost";
+                    temps[9] = "Plan time";
+                    temps[10] = "Expansions";
+                    temps[11] = "Generations";
+                    temps[12] = "preprocessingTime";
 
                     output.Add(temps);
 
@@ -474,12 +491,12 @@ namespace CPF_experiment
                 temps[4] = new_file_name;
                 temps[5] = costFunction;
                 temps[6] = solver;
-                temps[8] = success;
-                temps[9] = planSOCCost;
-                temps[11] = planTime;
-                temps[12] = expandedNodes;
-                temps[13] = generatedNodes;
-                temps[14] = preprocessingTime;
+                temps[7] = success;
+                temps[8] = planCost;
+                temps[9] = planTime;
+                temps[10] = expandedNodes;
+                temps[11] = generatedNodes;
+                temps[12] = preprocessingTime;
                 output.Add(temps);
 
                 length = output.Count;
@@ -497,7 +514,7 @@ namespace CPF_experiment
         {
             // Run the algorithm
             bool solved;
-            Console.WriteLine("----------------- " + solver + ", Minimizing SOC -----------------");
+            Console.WriteLine("----------------- " + solver + ", Minimizing MakeSpan -----------------");
             Constants.ALLOW_WAIT_MOVE = true;
             this.startTime = this.ElapsedMillisecondsTotal();
             solver.Setup(instance, new MAM_Run());
@@ -505,7 +522,7 @@ namespace CPF_experiment
             elapsedTime = this.ElapsedMilliseconds();
             if (solved)
             {
-                Console.WriteLine("Total SOC cost: {0}", solver.GetSolutionCost());
+                Console.WriteLine("Total MakeSpan cost: {0}", solver.GetSolutionCost());
             }
             else
             {
@@ -518,8 +535,9 @@ namespace CPF_experiment
                 this.PrintStatistics(instance, elapsedTime, null, solver);
         }
 
-        public void solveWithCFFMMStar(MAM_ProblemInstance instance)
+        public int solveWithCFFMMStar(MAM_ProblemInstance instance)
         {
+            int costConsistency = -1;
             MAM_AgentState[] vAgents = new MAM_AgentState[instance.GetNumOfAgents()];
             for (int agentIndex = 0; agentIndex < instance.GetNumOfAgents(); agentIndex++)
                 vAgents[agentIndex] = new MAM_AgentState(instance.m_vAgents[agentIndex]);
@@ -549,6 +567,9 @@ namespace CPF_experiment
 
                     solutionCost = CFMMStarSolvers[i].GetSolutionCost();
 
+                    if (costConsistency == -1) costConsistency = solutionCost;
+                    else if (solutionCost != costConsistency) throw new Exception("Inconsist Cost");
+
                     String plan = null;
                     if (CFMMStarSolvers[i].IsSolved()) // Solved successfully
                     {
@@ -574,6 +595,7 @@ namespace CPF_experiment
                     PrintNullStatistics(CFMMStarSolvers[i]);
                 Console.WriteLine();
             }
+            return costConsistency;
         }
 
         public double elapsedTime;
@@ -705,8 +727,7 @@ namespace CPF_experiment
                 solver.GetName(),                       // solver name
                 planningTime.ToString(),                // planning time 
                 costFunctionToString(solver.GetCostFunction()), // cost function
-                solver.GetSolutionSOCCost().ToString(), // solution SOC cost
-                solver.GetSolutionMakeSpanCost().ToString(), // solution MakeSpan cost
+                solver.GetSolutionCost().ToString(),    // solution  cost
                 instanceId.ToString(),                  // instanceId  
                 instance.fileName,                      // file Name
                 instance.m_vAgents.Length.ToString(),   // #Agents
@@ -715,11 +736,11 @@ namespace CPF_experiment
                 instance.m_nObstacles,                  // Obstacles
                 solver.GetExpanded().ToString(),        // Expansions 
                 solver.GetGenerated().ToString(),       // Generates
-                preprocessingTime.ToString(),            // preprocessing time
-                solver.GetHeuristicCalculator().GetName(), // Heuristic Name
-                initialH); // Initial h value
+                preprocessingTime.ToString()           // preprocessing time
+                //solver.GetHeuristicCalculator().GetName() // Heuristic Name
+                //initialH // Initial h value
+                ); 
         }
-
 
         private string costFunctionToString(CostFunction costFunction)
         {
