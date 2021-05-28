@@ -67,5 +67,10 @@ namespace CPF_experiment
         {
             indexCounter--;
         }
+
+        public override string ToString()
+        {
+            return this.nodeIndex + ": (" + this.x + "," + this.y + ")";
+        }
     }
 }

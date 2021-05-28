@@ -319,9 +319,9 @@ namespace CPF_experiment
             int instances = 100;
 
             bool runDragonAge = false;
-            bool runGrids = true;
+            bool runGrids = false;
             bool runMazesWidth1 = false;
-            bool runSpecific = false;
+            bool runSpecific = true;
 
             if (runGrids == true)
             {
@@ -341,7 +341,7 @@ namespace CPF_experiment
             {
 
                 Console.WriteLine();
-                me.RunInstance("test");
+                me.RunInstance("test2");
             }
             Console.WriteLine("*********************THE END**************************");
             Console.ReadLine();

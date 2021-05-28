@@ -75,6 +75,7 @@ namespace CPF_experiment
                 NFNodes.Remove(node);
                 openList.Enqueue(node);
             }
+            this.zeroLayer = new List<NFReducerNode>();
             while (openList.Count != 0)
             {
                 NFReducerNode node = openList.Dequeue();
@@ -210,7 +211,7 @@ namespace CPF_experiment
 
         private void ImportToMCMFAlgorithm()
         {
-            this.outputProblem = new NF_ProblemInstance(this.NFNodes.Count, this.edgeCounter);
+            this.outputProblem = new NF_ProblemInstance(this.NFNodes.Max(x => x.nodeIndex), this.edgeCounter);
             foreach(NFReducerNode inputNodeToEdge in NFNodes)
             {
                 foreach(NFReducerNode outputNodeFromEdge in inputNodeToEdge.edgeTo)
