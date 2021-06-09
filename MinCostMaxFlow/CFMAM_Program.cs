@@ -316,18 +316,18 @@ namespace CPF_experiment
 
             CFMAM_Program.onlyReadInstances = false;
 
-            int instances = 100;
+            int instances = 50;
 
             bool runDragonAge = false;
-            bool runGrids = false;
+            bool runGrids = true;
             bool runMazesWidth1 = false;
-            bool runSpecific = true;
+            bool runSpecific = false;
 
             if (runGrids == true)
             {
                 int[] gridSizes = new int[] { 10 };     // Map size 8x8, 16x16 ...
 
-                int[] agentListSizes = new int[] { 3 };  // Number of agents
+                int[] agentListSizes = new int[] { 15 };  // Number of agents
 
 
                 int[] obstaclesPercents = new int[] { 20 };   // Randomly allocatade obstacles percents
@@ -341,7 +341,7 @@ namespace CPF_experiment
             {
 
                 Console.WriteLine();
-                me.RunInstance("test2");
+                me.RunInstance("Instance-10-20-13-39");
             }
             Console.WriteLine("*********************THE END**************************");
             Console.ReadLine();
