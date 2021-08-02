@@ -3,7 +3,7 @@ using System.IO;
 
 namespace CPF_experiment
 {
-    public interface MAPF_IStatisticsCsvWriter
+    public interface CFMCBS_IStatisticsCsvWriter
     {
         /// <summary>
         /// Prints header of statistics of a single run to the given output. 
@@ -21,7 +21,7 @@ namespace CPF_experiment
         void ClearStatistics();
     }
 
-    public interface IAccumulatingStatisticsCsvWriter : MAPF_IStatisticsCsvWriter
+    public interface IAccumulatingStatisticsCsvWriter : CFMCBS_IStatisticsCsvWriter
     {
         void ClearAccumulatedStatistics();
         void AccumulateStatistics();

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace CPF_experiment
 {
-    public class MAPF_CBS : ICbsSolver
+    public class CFM_CBS : ICbsSolver
     {
         /// <summary>
         /// The key of the constraints list used for each CBS node
@@ -21,12 +21,12 @@ namespace CPF_experiment
         /// </summary>
         public static readonly string CAT = "CBS CAT";
 
-        protected MAM_ProblemInstance instance;
-        public MAPF_OpenList openList;
+        protected ProblemInstance instance;
+        public CFMCBS_OpenList openList;
         /// <summary>
         /// Might as well be a HashSet. We don't need to retrive from it.
         /// </summary>
-        public Dictionary<CbsNode, CbsNode> closedList;
+        public Dictionary<CFMCbsNode, CFMCbsNode> closedList;
         protected int highLevelExpanded;
         protected int highLevelGenerated;
         protected int closedListHits;
@@ -47,7 +47,7 @@ namespace CPF_experiment
         public int totalCost;
         protected int solutionDepth;
         public MAM_Run runner;
-        protected CbsNode goalNode;
+        protected CFMCbsNode goalNode;
         protected MAM_Plan solution;
         /// <summary>
         /// Nodes with with a higher cost aren't generated
@@ -85,10 +85,10 @@ namespace CPF_experiment
         }
 
 
-        public MAPF_CBS()
+        public CFM_CBS()
         {
-            this.closedList = new Dictionary<CbsNode, CbsNode>();
-            this.openList = new MAPF_OpenList(this);
+            this.closedList = new Dictionary<CFMCbsNode, CFMCbsNode>();
+            this.openList = new CFMCBS_OpenList(this);
             this.solved = false;
         }
         
@@ -99,7 +99,7 @@ namespace CPF_experiment
         /// <param name="minDepth"></param>
         /// <param name="runner"></param>
         /// <param name="minCost">Not taken into account</param>
-        public virtual void Setup(MAM_ProblemInstance problemInstance, int minDepth, MAM_Run runner, int minCost = -1)
+        public virtual void Setup(ProblemInstance problemInstance, int minDepth, MAM_Run runner, int minCost = -1)
         {
             this.instance = problemInstance;
             this.runner = runner;
@@ -116,7 +116,7 @@ namespace CPF_experiment
             //this.topMost = this.SetGlobals();
 
             this.minDepth = minDepth;
-            CbsNode root = new CbsNode(instance.m_vAgents.Length, this); // Problem instance and various strategy data is all passed under 'this'.
+            CFMCbsNode root = new CFMCbsNode(instance.m_vAgents.Length, this); // Problem instance and various strategy data is all passed under 'this'.
             // Solve the root node - Solve with MMStar, and find conflicts
             bool solved = root.Solve();
             
@@ -128,7 +128,7 @@ namespace CPF_experiment
             }
         }
 
-        public virtual void Setup(MAM_ProblemInstance problemInstance, MAM_Run runner)
+        public virtual void Setup(ProblemInstance problemInstance, MAM_Run runner)
         {
             this.Setup(problemInstance, 0, runner);
         }
@@ -146,7 +146,7 @@ namespace CPF_experiment
 
 
 
-        public MAM_ProblemInstance GetProblemInstance()
+        public ProblemInstance GetProblemInstance()
         {
             return this.instance;
         }
@@ -296,7 +296,7 @@ namespace CPF_experiment
 
             int initialEstimate = 0;
             if (openList.Count > 0)
-                initialEstimate = ((CbsNode)openList.Peek()).totalCost;
+                initialEstimate = ((CFMCbsNode)openList.Peek()).totalCost;
 
             int currentCost = -1;
 
@@ -307,13 +307,13 @@ namespace CPF_experiment
                 {
                     this.totalCost = Constants.TIMEOUT_COST;
                     Console.WriteLine("Out of time");
-                    this.solutionDepth = ((CbsNode)openList.Peek()).totalCost - initialEstimate; // A minimum estimate
+                    this.solutionDepth = ((CFMCbsNode)openList.Peek()).totalCost - initialEstimate; // A minimum estimate
                     this.Clear(); // Total search time exceeded - we're not going to resume this search.
                     //this.CleanGlobals();
                     return false;
                 }
 
-                var currentNode = (CbsNode)openList.Remove();
+                var currentNode = (CFMCbsNode)openList.Remove();
 
 
                 this.addToGlobalConflictCount(currentNode.GetConflict()); // TODO: Make CBS_GlobalConflicts use nodes that do this automatically after choosing a conflict
@@ -366,14 +366,14 @@ namespace CPF_experiment
                 currentNode.ChooseConflict();
 
                 // Expand
-                bool wasUnexpandedNode = (currentNode.agentAExpansion == CbsNode.ExpansionState.NOT_EXPANDED &&
-                                         currentNode.agentBExpansion == CbsNode.ExpansionState.NOT_EXPANDED);
+                bool wasUnexpandedNode = (currentNode.agentAExpansion == CFMCbsNode.ExpansionState.NOT_EXPANDED &&
+                                         currentNode.agentBExpansion == CFMCbsNode.ExpansionState.NOT_EXPANDED);
                 Expand(currentNode);
                 if (wasUnexpandedNode)
                     highLevelExpanded++;
                 // Consider moving the following into Expand()
-                if (currentNode.agentAExpansion == CbsNode.ExpansionState.EXPANDED &&
-                    currentNode.agentBExpansion == CbsNode.ExpansionState.EXPANDED) // Fully expanded
+                if (currentNode.agentAExpansion == CFMCbsNode.ExpansionState.EXPANDED &&
+                    currentNode.agentBExpansion == CFMCbsNode.ExpansionState.EXPANDED) // Fully expanded
                     currentNode.Clear();
             }
 
@@ -414,12 +414,12 @@ namespace CPF_experiment
         /// <param name="children"></param>
         /// <param name="adoptBy">If not given, adoption is done by expanded node</param>
         /// <returns>true if adopted - need to rerun this method, ignoring the returned children from this call, bacause adoption was performed</returns>
-        protected bool ExpandImpl(CbsNode node, out IList<CbsNode> children, out bool reinsertParent)
+        protected bool ExpandImpl(CFMCbsNode node, out IList<CFMCbsNode> children, out bool reinsertParent)
         {
-            CbsConflict conflict = node.GetConflict();
-            children = new List<CbsNode>();
+            CFMCbsConflict conflict = node.GetConflict();
+            children = new List<CFMCbsNode>();
 
-            CbsNode child;
+            CFMCbsNode child;
             reinsertParent = false;
             int closedListHitChildCost;
             bool leftSameCost = false; // To quiet the compiler
@@ -469,11 +469,11 @@ namespace CPF_experiment
             return false;
         }
 
-        public virtual void Expand(CbsNode node)
+        public virtual void Expand(CFMCbsNode node)
         {
             ushort parentCost = node.totalCost;
             ushort parentH = node.h;
-            IList<CbsNode> children = null; // To quiet the compiler
+            IList<CFMCbsNode> children = null; // To quiet the compiler
             bool reinsertParent = false; // To quiet the compiler
 
  
@@ -499,29 +499,29 @@ namespace CPF_experiment
         /// <param name="doLeftChild"></param>
         /// <param name="closedListHitChildCost"></param>
         /// <returns></returns>
-        protected CbsNode ConstraintExpand(CbsNode node, bool doLeftChild, out int closedListHitChildCost)
+        protected CFMCbsNode ConstraintExpand(CFMCbsNode node, bool doLeftChild, out int closedListHitChildCost)
         {
-            CbsConflict conflict = node.GetConflict();
+            CFMCbsConflict conflict = node.GetConflict();
             int conflictingAgentIndex = doLeftChild? conflict.agentAIndex : conflict.agentBIndex;
-            CbsNode.ExpansionState expansionsState = doLeftChild ? node.agentAExpansion : node.agentBExpansion;
-            CbsNode.ExpansionState otherChildExpansionsState = doLeftChild ? node.agentBExpansion : node.agentAExpansion;
+            CFMCbsNode.ExpansionState expansionsState = doLeftChild ? node.agentAExpansion : node.agentBExpansion;
+            CFMCbsNode.ExpansionState otherChildExpansionsState = doLeftChild ? node.agentBExpansion : node.agentAExpansion;
             string agentSide = doLeftChild? "left" : "right";
             int groupSize = node.GetGroupSize(conflictingAgentIndex);
             closedListHitChildCost = -1;
 
-            if (expansionsState != CbsNode.ExpansionState.EXPANDED)
+            if (expansionsState != CFMCbsNode.ExpansionState.EXPANDED)
             // Agent expansion already skipped in the past or not forcing it from its goal - finally generate the child:
             {
                 if (debug)
                     Debug.WriteLine("Generating " + agentSide +" child");
 
                 if (doLeftChild)
-                    node.agentAExpansion = CbsNode.ExpansionState.EXPANDED;
+                    node.agentAExpansion = CFMCbsNode.ExpansionState.EXPANDED;
                 else
-                    node.agentBExpansion = CbsNode.ExpansionState.EXPANDED;
+                    node.agentBExpansion = CFMCbsNode.ExpansionState.EXPANDED;
                 
-                var newConstraint = new CbsConstraint(conflict, instance, doLeftChild);
-                CbsNode child = new CbsNode(node, newConstraint, conflictingAgentIndex);
+                var newConstraint = new CFMCbsConstraint(conflict, instance, doLeftChild);
+                CFMCbsNode child = new CFMCbsNode(node, newConstraint, conflictingAgentIndex);
 
                 if (closedList.ContainsKey(child) == false)
                 {
@@ -551,7 +551,7 @@ namespace CPF_experiment
         }
 
 
-        protected virtual void addToGlobalConflictCount(CbsConflict conflict) { }
+        protected virtual void addToGlobalConflictCount(CFMCbsConflict conflict) { }
 
         public virtual String GetPlan()
         {

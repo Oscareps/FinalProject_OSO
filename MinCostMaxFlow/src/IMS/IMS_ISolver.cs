@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace CPF_experiment
 {
-    public interface CFMAM_ISolver : MAM_IStatisticsCsvWriter
+    public interface IMS_ISolver : MAM_IStatisticsCsvWriter
     {
         CFMAM_Run.CostFunction GetCostFunction();
         /// <summary>
@@ -24,7 +24,7 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="problemInstance"></param>
         /// <param name="runner"></param>
-        void Setup(MAM_ProblemInstance problemInstance, CFMAM_Run runner);
+        void Setup(ProblemInstance problemInstance, CFMAM_Run runner);
 
 
         /// <summary>

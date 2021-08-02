@@ -22,7 +22,7 @@ namespace CPF_experiment
                 this.vertexConflict = false;
         }
 
-        public MMStarConstraint(CbsConstraint constraint)
+        public MMStarConstraint(CFMCbsConstraint constraint)
             : this(constraint.agentNum, constraint.move.x, constraint.move.y, constraint.move.direction, constraint.move.time)
         { }
 

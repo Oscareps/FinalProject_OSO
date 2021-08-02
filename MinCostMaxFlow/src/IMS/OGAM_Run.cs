@@ -13,12 +13,12 @@ namespace CPF_experiment
         Stopwatch timer;
         MinCostFlow solution;
         Move goalState;
-        MAM_ProblemInstance problemInstance;
+        ProblemInstance problemInstance;
         List<List<TimedMove>> plan;
         long mcmfTime;
         int solutionCost;
 
-        public OGAM_Run(MAM_ProblemInstance instance, Move goalstate)
+        public OGAM_Run(ProblemInstance instance, Move goalstate)
         {
             this.goalState = goalstate;
             this.problemInstance = instance;
@@ -29,7 +29,7 @@ namespace CPF_experiment
             this.solutionCost = -1;
         }
 
-        public long solve(CFMMStar.CostFunction costFunction)
+        public long solve(CFMAStar.CostFunction costFunction)
         {
             // Independence Detection
             List<List<TimedMove>> nonConflictsPaths = null;
@@ -46,7 +46,7 @@ namespace CPF_experiment
                 timer = Stopwatch.StartNew();
                 solution = mcmfSolver.SolveMinCostFlow();
                 List<TimedMove>[] partialPlan = this.reducer.GetCFMAMSolution(this.solution, this.mcmfTime, true);
-                if (costFunction == CFMMStar.CostFunction.MakeSpan)
+                if (costFunction == CFMAStar.CostFunction.MakeSpan)
                 {
                     while(!isPathForEachAgent(partialPlan))
                     {
@@ -78,9 +78,9 @@ namespace CPF_experiment
             return true;
        }
 
-        private int calculateCost(List<List<TimedMove>> plan, CFMMStar.CostFunction costFunction)
+        private int calculateCost(List<List<TimedMove>> plan, CFMAStar.CostFunction costFunction)
         {
-            if(costFunction == CFMMStar.CostFunction.SOC)
+            if(costFunction == CFMAStar.CostFunction.SOC)
                 return sumSolutionCost(this.plan);
             plan.Sort((x, y) => y.Count - x.Count);
             return plan[0].Count-1;

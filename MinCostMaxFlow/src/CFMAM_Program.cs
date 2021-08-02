@@ -13,18 +13,43 @@ namespace CPF_experiment
     public class CFMAM_Program
     {
 
-        private static string RESULTS_FILE_NAME = "Results.csv"; // Overridden by Main
-        private static bool onlyReadInstances = false;
+        private string resultsFileName;
+        private bool onlyReadInstances;
+        private string outputDirectory;
+        private List<IMS_ISolver> imsSolversList;
+        private List<ICbsSolver> cfmCbsSolversList;
+
+        public CFMAM_Program(List<IMS_ISolver> imsSolversList, List<ICbsSolver> cfmCbsSolversList, string outputDirectory="", string resultsFileName="", bool onlyReadInstances=false)
+        { 
+
+            if(resultsFileName.Equals(""))
+            {
+                this.resultsFileName = Process.GetCurrentProcess().ProcessName + ".csv";
+            }
+
+            if (outputDirectory.Equals(""))
+                outputDirectory = Directory.GetCurrentDirectory();
+
+            if (!Directory.Exists(outputDirectory))
+                throw new Exception("Not a valid output directory");
+
+            this.outputDirectory = Path.Combine(new[] { outputDirectory, "Instances" });
+            Directory.CreateDirectory(this.outputDirectory);
+
+            this.onlyReadInstances = onlyReadInstances;
+            this.imsSolversList = imsSolversList;
+            this.cfmCbsSolversList = cfmCbsSolversList;
+        }
 
         /// <summary>
         /// Simplest run possible with a randomly generated problem instance.
         /// </summary>
-        public void SimpleRun()
+        public void SimpleRun(int gridSize, int agentsNum, int obstaclesNum)
         {
-            CFMAM_Run runner = new CFMAM_Run();
-            runner.OpenResultsFile(RESULTS_FILE_NAME);
+            CFMAM_Run runner = new CFMAM_Run(this.imsSolversList, this.cfmCbsSolversList);
+            runner.OpenResultsFile(this.resultsFileName);
             runner.PrintResultsFileHeader();
-            MAM_ProblemInstance instance = runner.GenerateProblemInstance(10, 3, 10);
+            ProblemInstance instance = runner.GenerateProblemInstance(gridSize, agentsNum, obstaclesNum);
             instance.Export("Test.instance");
             runner.SolveGivenProblem(instance);
             runner.CloseResultsFile();
@@ -36,27 +61,26 @@ namespace CPF_experiment
         /// <param name="fileName"></param>
         public bool RunInstance(string fileName)
         {
-            MAM_ProblemInstance instance;
+            ProblemInstance instance;
             try
             {
-                String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", fileName };
-                instance = MAM_ProblemInstance.Import(Path.Combine(pathElements));
+                String[] pathElements = { this.outputDirectory, fileName };
+                instance = ProblemInstance.Import(Path.Combine(pathElements));
             }
             catch (Exception e)
             {
-                Console.WriteLine(String.Format("Skipping bad problem instance {0}. Error: {1}", fileName, e.Message));
+                Console.WriteLine(String.Format("Bad problem instance {0}. Error: {1}", fileName, e.Message));
                 return false;
             }
 
-            CFMAM_Run runner = new CFMAM_Run();
+            CFMAM_Run runner = new CFMAM_Run(this.imsSolversList, this.cfmCbsSolversList);
             if (runner.m_mapFileName == "")
                 runner.m_mapFileName = "Grid" + instance.GetMaxX() + "x" + instance.GetMaxY();
-            bool resultsFileExisted = File.Exists(RESULTS_FILE_NAME);
-            runner.OpenResultsFile(RESULTS_FILE_NAME);
+            bool resultsFileExisted = File.Exists(this.resultsFileName);
+            runner.OpenResultsFile(this.resultsFileName);
             if (resultsFileExisted == false)
                 runner.PrintResultsFileHeader();
-            bool success;
-            success = runner.SolveGivenProblem(instance);
+            bool success = runner.SolveGivenProblem(instance);
             runner.CloseResultsFile();
 
 
@@ -67,21 +91,26 @@ namespace CPF_experiment
         /// Runs a set of experiments.
         /// This function will generate a random instance (or load it from a file if it was already generated)
         /// </summary>
-        public void RunExperimentSet(int[] gridSizes, int[] agentListSizes, int[] obstaclesProbs, int instances)
+        public void RunExperimentSet(int gridSizes, int agentListSizes, int obstaclesProbs, int instances)
         {
 
-            MAM_ProblemInstance instance;
-            string instanceName;
-            CFMAM_Run runner = new CFMAM_Run();
+            int[] grid = new int[] { gridSizes };
+            int[] agentList = new int[] { agentListSizes };
+            int[] obstacles = new int[] { obstaclesProbs };
 
-            bool resultsFileExisted = File.Exists(RESULTS_FILE_NAME);
-            runner.OpenResultsFile(RESULTS_FILE_NAME);
+            ProblemInstance instance;
+            string instanceName;
+            CFMAM_Run runner = new CFMAM_Run(this.imsSolversList, this.cfmCbsSolversList);
+
+            bool resultsFileExisted = File.Exists(this.resultsFileName);
+            runner.OpenResultsFile(this.resultsFileName);
             if (resultsFileExisted == false)
                 runner.PrintResultsFileHeader();
 
             bool continueFromLastRun = false;
             string[] LastProblemDetails = null;
-            string currentProblemFileName = Directory.GetCurrentDirectory() + "\\MAM_Instances\\current problem-" + Process.GetCurrentProcess().ProcessName;
+            string currentProblemFileName = Path.Combine(new[] { this.outputDirectory, "current_problem_" + Process.GetCurrentProcess().ProcessName });
+
             if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
             {
                 var lastProblemFile = new StreamReader(currentProblemFileName);
@@ -90,19 +119,17 @@ namespace CPF_experiment
                 continueFromLastRun = true;
             }
 
-            for (int gs = 0; gs < gridSizes.Length; gs++)
+            for (int gs = 0; gs < grid.Length; gs++)
             {
-                for (int obs = 0; obs < obstaclesProbs.Length; obs++)
+                for (int obs = 0; obs < obstacles.Length; obs++)
                 {
                     runner.ResetOutOfTimeCounters();
-                    for (int ag = 0; ag < agentListSizes.Length; ag++)
+                    for (int ag = 0; ag < agentList.Length; ag++)
                     {
-                        if (gridSizes[gs] * gridSizes[gs] * (1 - obstaclesProbs[obs] / 100) < agentListSizes[ag]) // Probably not enough room for all agents
+                        if (grid[gs] * grid[gs] * (1 - obstacles[obs] / 100) < agentList[ag]) // Probably not enough room for all agents
                             continue;
                         for (int i = 0; i < instances; i++)
                         {
-                            string allocation = Process.GetCurrentProcess().ProcessName.Substring(1);
-
                             if (continueFromLastRun)  //set the latest problem
                             {
                                 gs = int.Parse(LastProblemDetails[0]);
@@ -119,10 +146,10 @@ namespace CPF_experiment
                             if (runner.outOfTimeCounters.Length != 0 &&
                                 runner.outOfTimeCounters.Sum() == runner.outOfTimeCounters.Length * Constants.MAX_FAIL_COUNT) // All algs should be skipped
                                     break;
-                            instanceName = "Instance-" + gridSizes[gs] + "-" + obstaclesProbs[obs] + "-" + agentListSizes[ag] + "-" + i;
+                            instanceName = "Instance-" + grid[gs] + "-" + obstacles[obs] + "-" + agentList[ag] + "-" + i;
                             try
                             {
-                                instance = MAM_ProblemInstance.Import(Directory.GetCurrentDirectory() + "\\MAM_Instances\\" + instanceName);
+                                instance = ProblemInstance.Import(Path.Combine(new[] { this.outputDirectory, instanceName}));
                                 instance.instanceId = i;
                             }
                             catch (Exception importException)
@@ -133,7 +160,7 @@ namespace CPF_experiment
                                     return;
                                 }
 
-                                instance = runner.GenerateProblemInstance(gridSizes[gs], agentListSizes[ag], obstaclesProbs[obs] * gridSizes[gs] * gridSizes[gs] / 100);
+                                instance = runner.GenerateProblemInstance(grid[gs], agentList[ag], obstacles[obs] * grid[gs] * grid[gs] / 100);
                                 instance.instanceId = i;
                                 instance.Export(instanceName);
                             }
@@ -174,21 +201,6 @@ namespace CPF_experiment
             runner.CloseResultsFile();
         }
 
-        //protected static readonly string[] daoMapFilenames = {/* "dao_maps\\den502d.map", "dao_maps\\ost003d.map", */"dao_maps\\brc202d.map" ,dao_maps\\kiva.map};
-
-        static String[] pathElem = { "dao_maps", "kiva.map" };
-        protected static readonly string[] daoMapFilenames = { Path.Combine(pathElem) };
-
-        /*protected static readonly string[] daoMapFilenames = {  "dao_maps\\Berlin_0_256.map",
-                                                                "dao_maps\\Berlin_0_512.map",
-                                                                "dao_maps\\Berlin_0_1024.map",
-                                                                "dao_maps\\Berlin_1_256.map",
-                                                                "dao_maps\\Berlin_1_512.map",
-                                                                "dao_maps\\Berlin_1_1024.map",
-                                                                "dao_maps\\Boston_0_256.map",
-                                                                "dao_maps\\Boston_0_512.map",
-                                                                "dao_maps\\Boston_0_1024.map", };*/
-
         protected static readonly string[] mazeMapFilenames = { "mazes-width1-maps\\maze512-1-6.map", "mazes-width1-maps\\maze512-1-2.map",
                                                 "mazes-width1-maps\\maze512-1-9.map" };
 
@@ -199,15 +211,16 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="numInstances"></param>
         /// <param name="mapFileNames"></param>
-        public void RunDragonAgeExperimentSet(int numInstances, string[] mapFileNames)
+        public void RunDragonAgeExperimentSet(int numInstances, string mapsFolder, string[] mapFileNames)
         {
+            string[] mapPaths = createMapPathes(mapsFolder, mapFileNames);
 
-            MAM_ProblemInstance instance;
+            ProblemInstance instance;
             string instanceName;
-            CFMAM_Run runner = new CFMAM_Run();
+            CFMAM_Run runner = new CFMAM_Run(this.imsSolversList, this.cfmCbsSolversList);
 
-            bool resultsFileExisted = File.Exists(RESULTS_FILE_NAME);
-            runner.OpenResultsFile(RESULTS_FILE_NAME);
+            bool resultsFileExisted = File.Exists(this.resultsFileName);
+            runner.OpenResultsFile(this.resultsFileName);
             if (resultsFileExisted == false)
                 runner.PrintResultsFileHeader();
 
@@ -217,7 +230,7 @@ namespace CPF_experiment
             bool continueFromLastRun = false;
             string[] lineParts = null;
 
-            String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", "current problem-" + Process.GetCurrentProcess().ProcessName };
+            String[] pathElements = { Directory.GetCurrentDirectory(), "current problem-" + Process.GetCurrentProcess().ProcessName };
             string currentProblemFileName = Path.Combine(pathElements);
 
             if (File.Exists(currentProblemFileName)) //if we're continuing running from last time
@@ -235,7 +248,7 @@ namespace CPF_experiment
                     string name = Process.GetCurrentProcess().ProcessName.Substring(1);
 
 
-                    for (int map = 0; map < mapFileNames.Length; map++)
+                    for (int map = 0; map < mapPaths.Length; map++)
                     {
                         if (continueFromLastRun) // Set the latest problem
                         {
@@ -251,12 +264,12 @@ namespace CPF_experiment
                         }
                         if (runner.outOfTimeCounters.Sum() == runner.outOfTimeCounters.Length * 20) // All algs should be skipped
                             break;
-                        string mapFileName = mapFileNames[map];
+                        string mapFileName = mapPaths[map];
                         instanceName = Path.GetFileNameWithoutExtension(mapFileName) + "-" + agentListSizes[ag] + "-" + i;
                         try
                         {
-                            String[] path = { Directory.GetCurrentDirectory(), "MAM_Instances", instanceName };
-                            instance = MAM_ProblemInstance.Import(Path.Combine(pathElements));
+                            String[] path = { Directory.GetCurrentDirectory(), instanceName };
+                            instance = ProblemInstance.Import(Path.Combine(pathElements));
                         }
                         catch (Exception importException)
                         {
@@ -297,54 +310,9 @@ namespace CPF_experiment
             }
         }
 
-
-        /// <summary>
-        /// This is the starting point of the program. 
-        /// </summary>
-        public static void CFMAM_Main(string[] args)
+        private string[] createMapPathes(string mapsFolder, string[] mapFileNames)
         {
-            CFMAM_Program me = new CFMAM_Program();
-            CFMAM_Program.RESULTS_FILE_NAME = Process.GetCurrentProcess().ProcessName + ".csv";
-            TextWriterTraceListener tr1 = new TextWriterTraceListener(System.Console.Out);
-            Trace.Listeners.Add(tr1);
-
-
-            if (Directory.Exists(Directory.GetCurrentDirectory() + "\\Instances") == false)
-            {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\Instances");
-            }
-
-            CFMAM_Program.onlyReadInstances = false;
-
-            int instances = 100;
-
-            bool runDragonAge = false;
-            bool runGrids = false;
-            bool runMazesWidth1 = false;
-            bool runSpecific = true;
-
-            if (runGrids == true)
-            {
-                int[] gridSizes = new int[] { 10 };     // Map size 8x8, 16x16 ...
-
-                int[] agentListSizes = new int[] { 3 };  // Number of agents
-
-
-                int[] obstaclesPercents = new int[] { 20 };   // Randomly allocatade obstacles percents
-                me.RunExperimentSet(gridSizes, agentListSizes, obstaclesPercents, instances);
-            }
-            else if (runDragonAge == true)
-                me.RunDragonAgeExperimentSet(instances, CFMAM_Program.daoMapFilenames); // Obstacle percents and grid sizes built-in to the maps.
-            else if (runMazesWidth1 == true)
-                me.RunDragonAgeExperimentSet(instances, CFMAM_Program.mazeMapFilenames); // Obstacle percents and grid sizes built-in to the maps.
-            else if (runSpecific == true)
-            {
-
-                Console.WriteLine();
-                me.RunInstance("test2");
-            }
-            Console.WriteLine("*********************THE END**************************");
-            Console.ReadLine();
+            return mapFileNames.Select(mapFileName => Path.Combine(mapsFolder, mapFileName)).ToArray();
         }
     }
 }

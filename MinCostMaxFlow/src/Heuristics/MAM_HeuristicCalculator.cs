@@ -16,7 +16,7 @@ namespace CPF_experiment
         /// database pertains to.
         /// </summary>
         /// <param name="pi">The problem instance.</param>
-        void init(MAM_ProblemInstance instance);
+        void init(ProblemInstance instance);
 
         double GetInitialH();
 

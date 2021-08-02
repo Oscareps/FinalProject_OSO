@@ -42,7 +42,7 @@ namespace CPF_experiment
 
         private NFReducerNode superSink;
 
-        public CFMAM_MCMF_Reducer(MAM_ProblemInstance problem, Move goalState)
+        public CFMAM_MCMF_Reducer(ProblemInstance problem, Move goalState)
         {
             this.problemGrid = problem.m_vGrid;
 
@@ -201,7 +201,7 @@ namespace CPF_experiment
             return null;
         }
 
-        public void reduce(CFMMStar.CostFunction costFunction)
+        public void reduce(CFMAStar.CostFunction costFunction)
         {
             timer = Stopwatch.StartNew();
             if(CreateNFProblem(costFunction))
@@ -262,7 +262,7 @@ namespace CPF_experiment
         /// <summary>
         /// Creates an initial network flow problem reduced from the given problem
         /// </summary>
-        private bool CreateNFProblem(CFMMStar.CostFunction costFunction)
+        private bool CreateNFProblem(CFMAStar.CostFunction costFunction)
         {
             this.superSink = new NFReducerNode(-1, -1, -1);
             NFNodes.Add(this.superSink);
@@ -293,7 +293,7 @@ namespace CPF_experiment
                     if (l == -1 && startPositionsToDiscover == 0)
                     {
                         l = son.nodeTime;
-                        if (costFunction == CFMMStar.CostFunction.SOC)
+                        if (costFunction == CFMAStar.CostFunction.SOC)
                             T = l + startPositions.Length - 1;
                         else
                             T = l;                    }

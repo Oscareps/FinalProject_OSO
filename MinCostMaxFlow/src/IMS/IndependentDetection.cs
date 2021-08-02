@@ -5,10 +5,10 @@ namespace CPF_experiment
 {
     public class IndependentDetection
     {
-        private MAM_ProblemInstance instance;
+        private ProblemInstance instance;
         private Move goalState;
 
-        public IndependentDetection(MAM_ProblemInstance instance, Move goalState)
+        public IndependentDetection(ProblemInstance instance, Move goalState)
         {
             this.instance = instance;
             this.goalState = goalState;
@@ -101,7 +101,7 @@ namespace CPF_experiment
             return paths;
         }
 
-        private void addPath(MAM_ProblemInstance problemInstance, List<List<TimedMove>> paths, BFSNode node)
+        private void addPath(ProblemInstance problemInstance, List<List<TimedMove>> paths, BFSNode node)
         {
             List<TimedMove> newPath = new List<TimedMove>();
             BFSNode currNode = node;
@@ -121,7 +121,7 @@ namespace CPF_experiment
             return null;
         }
 
-        private void GetSons(BFSNode node, ReducerOpenList<BFSNode> openList, MAM_ProblemInstance problem)
+        private void GetSons(BFSNode node, ReducerOpenList<BFSNode> openList, ProblemInstance problem)
         {
 
             bool[][] problemGrid = problem.m_vGrid;

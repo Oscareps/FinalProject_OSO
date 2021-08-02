@@ -9,14 +9,14 @@ namespace CPF_experiment
     // This heuristics only work for 2D grid
     class MedianHCalculator : MAM_HeuristicCalculator
     {
-        MAM_ProblemInstance instance;
+        ProblemInstance instance;
         double initialH;
         int[][] medians;
         int[] h0;
 
         public void init
         (
-            MAM_ProblemInstance instance
+            ProblemInstance instance
         )
         {
             this.instance = instance;

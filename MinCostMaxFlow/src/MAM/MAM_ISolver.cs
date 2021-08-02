@@ -4,8 +4,9 @@ using System.Collections.Generic;
 
 namespace CPF_experiment
 {
-    public interface MAPF_ISolver : MAPF_IStatisticsCsvWriter
+    public interface MAM_ISolver : MAM_IStatisticsCsvWriter
     {
+        MAM_Run.CostFunction GetCostFunction();
         /// <summary>
         /// Return the name of the solver, useful for outputing results.
         /// </summary>
@@ -23,7 +24,23 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="problemInstance"></param>
         /// <param name="runner"></param>
-        void Setup(MAM_ProblemInstance problemInstance, MAM_Run runner);
+        void Setup(ProblemInstance problemInstance, MAM_Run runner);
+
+
+        /// <summary>
+        /// Add constraints to the problem instance.
+        /// </summary>
+        /// <param name="constraints"></param>
+        void AddConstraints(HashSet<MMStarConstraint> constraints);
+
+
+        /// <summary>
+        /// Set the heuristic
+        /// </summary>
+        /// <param name="heuristic"></param>
+        void SetHeuristic(MAM_HeuristicCalculator hCalculator);
+
+        MAM_HeuristicCalculator GetHeuristicCalculator();
 
         /// <summary>
         /// Clears the relevant data structures and variables to free memory usage.
@@ -34,41 +51,24 @@ namespace CPF_experiment
         /// Returns the found plan, or null if no plan was found.
         /// </summary>
         /// <returns></returns>
-        String GetPlan();
+        MAM_Plan GetPlan();
 
+        Tuple<double, int> GetHeuristicCalculatorInitialH();
         /// <summary>
         /// Returns the cost of the solution found, or error codes otherwise.
         /// </summary>
-        int GetSolutionCost();
-
+        int GetSolutionMakeSpanCost();
+        int GetSolutionSOCCost();
         /// <summary>
         /// Gets the delta of (actual solution cost - first state heuristics)
         /// </summary>
         int GetSolutionDepth();
-
         long GetMemoryUsed();
-        int GetMaxGroupSize();
-
         int GetExpanded();
         int GetGenerated();
 
-        bool isSolved();
+        bool IsSolved();
     }
 
-    public interface ICbsSolver : MAPF_ISolver, IAccumulatingStatisticsCsvWriter
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="problemInstance"></param>
-        /// <param name="minDepth">!@# Shoud be more generally called minTimeStep? Because for CBS the depth isn't the time step</param>
-        /// <param name="runner"></param>
-        void Setup(MAM_ProblemInstance problemInstance, int minDepth, MAM_Run runner, int minCost);
-        int[] GetSingleCosts();
-        Dictionary<int, int> GetExternalConflictCounts();
-        Dictionary<int, List<int>> GetConflictTimes();
 
-        int GetAccumulatedExpanded();
-        int GetAccumulatedGenerated();
-    }
 }

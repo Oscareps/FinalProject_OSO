@@ -11,7 +11,7 @@ namespace CPF_experiment
 
         public void init
         (
-            MAM_ProblemInstance instance
+            ProblemInstance instance
         )
         {
         }

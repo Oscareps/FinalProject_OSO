@@ -5,25 +5,25 @@ using System.Linq;
 
 namespace CPF_experiment
 {
-    public class CbsConstraint : IComparable
+    public class CFMCbsConstraint : IComparable
     {
         public byte agentNum {get; protected set;}
         public TimedMove move {get; protected set;}
         public bool queryInstance = false;
 
-        public CbsConstraint(int agentNum, int posX, int posY, Move.Direction direction, int timeStep)
+        public CFMCbsConstraint(int agentNum, int posX, int posY, Move.Direction direction, int timeStep)
         {
             this.Init(agentNum, posX, posY, direction, timeStep);
         }
 
-        public CbsConstraint(int agentNum, TimedMove move)
+        public CFMCbsConstraint(int agentNum, TimedMove move)
         {
             this.Init(agentNum, move);
         }
 
-        public CbsConstraint() : this(-1, -1, -1, Move.Direction.NO_DIRECTION, -1) {} // Nonsense values until Init, just allocate move
+        public CFMCbsConstraint() : this(-1, -1, -1, Move.Direction.NO_DIRECTION, -1) {} // Nonsense values until Init, just allocate move
 
-        public CbsConstraint(CbsConflict conflict, MAM_ProblemInstance instance, bool agentA)
+        public CFMCbsConstraint(CFMCbsConflict conflict, ProblemInstance instance, bool agentA)
         {
             Move move;
             int agentNum;
@@ -82,7 +82,7 @@ namespace CPF_experiment
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            CbsConstraint other = (CbsConstraint)obj;
+            CFMCbsConstraint other = (CFMCbsConstraint)obj;
             if (this.agentNum != other.agentNum)
                 return false;
 
@@ -128,7 +128,7 @@ namespace CPF_experiment
 
         public int CompareTo(object item)
         {
-            CbsConstraint other = (CbsConstraint)item;
+            CFMCbsConstraint other = (CFMCbsConstraint)item;
 
             return this.move.time.CompareTo(other.move.time);
         }

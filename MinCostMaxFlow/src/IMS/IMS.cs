@@ -9,11 +9,11 @@ namespace CPF_experiment
     /// <summary>
     /// Merges agents if they conflict more times than the given threshold in the CT nodes from the root to the current CT nodes only.
     /// </summary>
-    public class CFMMStar : CFMAM_ISolver
+    public class CFMAStar : IMS_ISolver
     {
         public enum CostFunction { MakeSpan, SOC };
         public CostFunction costFunction;
-        protected MAM_ProblemInstance instance;
+        protected ProblemInstance instance;
         public CFMAM_OpenList openList;
         public HashSet<MMStarConstraint> constraints;
         public HashSet<IBinaryHeapItem> expandedNodes;
@@ -46,7 +46,7 @@ namespace CPF_experiment
 
 
 
-        public CFMMStar
+        public CFMAStar
         (
             CostFunction costFunction = CostFunction.SOC
         )
@@ -65,7 +65,7 @@ namespace CPF_experiment
         /// <param name="minCost">Not taken into account</param>
         public virtual void Setup
         (
-            MAM_ProblemInstance problemInstance,
+            ProblemInstance problemInstance,
             int minDepth,
             CFMAM_Run runner,
             int minCost = -1,
@@ -159,7 +159,7 @@ namespace CPF_experiment
 
         public virtual void Setup
         (
-            MAM_ProblemInstance problemInstance,
+            ProblemInstance problemInstance,
             CFMAM_Run runner
         )
         {
@@ -201,7 +201,7 @@ namespace CPF_experiment
         }
 
 
-        public MAM_ProblemInstance GetProblemInstance()
+        public ProblemInstance GetProblemInstance()
         {
             return this.instance;
         }

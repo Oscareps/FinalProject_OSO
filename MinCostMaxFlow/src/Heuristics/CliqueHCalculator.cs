@@ -8,11 +8,11 @@ namespace CPF_experiment
 {
     class CliqueHCalculator : MAM_HeuristicCalculator
     {
-        MAM_ProblemInstance instance;
+        ProblemInstance instance;
         double initialH;
         public void init
         (
-            MAM_ProblemInstance instance
+            ProblemInstance instance
         )
         {
             this.instance = instance;

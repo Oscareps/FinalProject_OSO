@@ -13,7 +13,7 @@ namespace CPF_experiment
     {
         public enum CostFunction { MakeSpan, SOC };
         public CostFunction costFunction;
-        protected MAM_ProblemInstance instance;
+        protected ProblemInstance instance;
         public MAM_OpenList openList;
         public HashSet<MMStarConstraint> constraints;
         public HashSet<IBinaryHeapItem> expandedNodes;
@@ -65,7 +65,7 @@ namespace CPF_experiment
         /// <param name="minCost">Not taken into account</param>
         public virtual void Setup
         (
-            MAM_ProblemInstance problemInstance,
+            ProblemInstance problemInstance,
             int minDepth,
             MAM_Run runner,
             int minCost = -1,
@@ -176,7 +176,7 @@ namespace CPF_experiment
 
         public virtual void Setup
         (
-            MAM_ProblemInstance problemInstance,
+            ProblemInstance problemInstance,
             MAM_Run runner
         )
         {
@@ -205,7 +205,7 @@ namespace CPF_experiment
                     MAM_AgentState[] agentStartStates = new MAM_AgentState[2];
                     agentStartStates[0] = agent;
                     agentStartStates[1] = agent2;
-                    MAM_ProblemInstance subProblem = instance.CreateSubProblem(agentStartStates);
+                    ProblemInstance subProblem = instance.CreateSubProblem(agentStartStates);
                     newHeuristicCalculator.init(subProblem);
                     this.hCalculatorList[agent.agentIndex].Add(newHeuristicCalculator);
                 }
@@ -247,7 +247,7 @@ namespace CPF_experiment
         }
 
 
-        public MAM_ProblemInstance GetProblemInstance()
+        public ProblemInstance GetProblemInstance()
         {
             return this.instance;
         }

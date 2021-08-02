@@ -17,7 +17,7 @@ namespace CPF_experiment
         protected Queue<IBinaryHeapItem> queue;
         protected BinaryHeap heap;
 
-        protected CFMAM_ISolver user;
+        protected IMS_ISolver user;
         protected int quickInsertionCount;
         protected int accQuickInsertionCount;
 
@@ -26,7 +26,7 @@ namespace CPF_experiment
 
         public CFMAM_OpenList
         (
-            CFMAM_ISolver user
+            IMS_ISolver user
         )
         {
             this.openNodes = new Dictionary<IBinaryHeapItem, IBinaryHeapItem>();
@@ -192,9 +192,9 @@ namespace CPF_experiment
         public virtual void OutputStatisticsHeader(TextWriter output)
         {
             output.Write(this.user.ToString() + " Quick Insertions");
-            output.Write(MAM_Run.RESULTS_DELIMITER);
+            output.Write(CFMAM_Run.RESULTS_DELIMITER);
             output.Write(this.user.ToString() + " Quick Insertions Cancelled");
-            output.Write(MAM_Run.RESULTS_DELIMITER);
+            output.Write(CFMAM_Run.RESULTS_DELIMITER);
         }
 
         public virtual void OutputStatistics
@@ -205,8 +205,8 @@ namespace CPF_experiment
             Console.WriteLine(this.user.ToString() + " Quick insertions: {0}", this.quickInsertionCount);
             Console.WriteLine(this.user.ToString() + " Quick insertions cancelled: {0}", this.quickInsertionsCancelled);
 
-            output.Write(this.quickInsertionCount + MAM_Run.RESULTS_DELIMITER);
-            output.Write(this.quickInsertionsCancelled + MAM_Run.RESULTS_DELIMITER);
+            output.Write(this.quickInsertionCount + CFMAM_Run.RESULTS_DELIMITER);
+            output.Write(this.quickInsertionsCancelled + CFMAM_Run.RESULTS_DELIMITER);
         }
 
         public virtual int NumStatsColumns
@@ -253,8 +253,8 @@ namespace CPF_experiment
             Console.WriteLine(this.user.ToString() + " Accumulated Quick insertions: {0}", this.accQuickInsertionCount);
             Console.WriteLine(this.user.ToString() + " Accumulated Quick insertions cancelled: {0}", this.accQuickInsertionsCancelled);
 
-            output.Write(this.accQuickInsertionCount + MAM_Run.RESULTS_DELIMITER);
-            output.Write(this.accQuickInsertionsCancelled + MAM_Run.RESULTS_DELIMITER);
+            output.Write(this.accQuickInsertionCount + CFMAM_Run.RESULTS_DELIMITER);
+            output.Write(this.accQuickInsertionsCancelled + CFMAM_Run.RESULTS_DELIMITER);
         }
 
         public override string ToString()

@@ -21,8 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="MAM\" />
-    <Folder Include="CBS\" />
+    <Folder Include="src\" />
+    <Folder Include="src\Heuristics\" />
+    <Folder Include="src\ProblemElements\" />
+    <Folder Include="src\CFMCBS\" />
+    <Folder Include="src\MAM\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,21 +10,21 @@ namespace CPF_experiment
     /// Supporting O(1) insertion and removal of items that compare equal to the top of the heap.
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
-    public class MAPF_OpenList : IAccumulatingStatisticsCsvWriter
+    public class CFMCBS_OpenList : IAccumulatingStatisticsCsvWriter
     {
         //protected IBinaryHeapItem lastRemovedItem;
         protected Queue<IBinaryHeapItem> queue;
         //protected LinkedList<IBinaryHeapItem> queue;
         protected BinaryHeap heap;
         
-        protected MAPF_ISolver user;
+        protected ICbsSolver user;
         protected int quickInsertionCount;
         protected int accQuickInsertionCount;
 
         protected int quickInsertionsCancelled;
         protected int accQuickInsertionsCancelled;
 
-        public MAPF_OpenList(MAPF_ISolver user)
+        public CFMCBS_OpenList(ICbsSolver user)
         {
             this.heap = new BinaryHeap();
             this.queue = new Queue<IBinaryHeapItem>();

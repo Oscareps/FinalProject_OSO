@@ -9,7 +9,7 @@ using System.IO;
 namespace CPF_experiment
 {
     [DebuggerDisplay("hash = {GetHashCode()}, f = {f}")]
-    public class CbsNode : IComparable<IBinaryHeapItem>, IBinaryHeapItem
+    public class CFMCbsNode : IComparable<IBinaryHeapItem>, IBinaryHeapItem
     {
         public ushort totalCost;
         public ushort h;
@@ -36,17 +36,17 @@ namespace CPF_experiment
         /// </summary>
         public int totalConflictsWithExternalAgents;
 
-        public List<CbsConflict> nodeConflicts;
+        public List<CFMCbsConflict> nodeConflicts;
 
         /// For each agent in the problem instance, maps agent _nums_ of agents it collides with to the time bias of their first collision. (for range conflict)
         /// </summary>
         private int binaryHeapIndex;
-        public CbsConflict conflict;
-        public CbsConstraint constraint;
+        public CFMCbsConflict conflict;
+        public CFMCbsConstraint constraint;
         /// <summary>
         /// Forcing an agent to be at a certain place at a certain time
         /// </summary>
-        public CbsNode prev;
+        public CFMCbsNode prev;
         public ushort depth;
         public ushort[] agentsGroupAssignment;
         public ushort replanSize;
@@ -67,7 +67,7 @@ namespace CPF_experiment
         //public ProblemInstance problem;
         protected ICbsSolver solver;
         protected ICbsSolver singleAgentSolver;
-        protected MAPF_CBS cbs;
+        protected CFM_CBS cbs;
         public Dictionary<int, int> agentNumToIndex;
         public bool parentAlreadyLookedAheadOf;
         /// <summary>
@@ -83,7 +83,7 @@ namespace CPF_experiment
         /// </summary>
         public int totalConflictsBetweenInternalAgents;
 
-        public CbsNode(int numberOfAgents, MAPF_CBS cbs, ushort[] agentsGroupAssignment = null)
+        public CFMCbsNode(int numberOfAgents, CFM_CBS cbs, ushort[] agentsGroupAssignment = null)
         {
             this.cbs = cbs;
             mamPlan = null;
@@ -122,7 +122,7 @@ namespace CPF_experiment
         /// <param name="father"></param>
         /// <param name="newConstraint"></param>
         /// <param name="agentToReplan"></param>
-        public CbsNode(CbsNode father, CbsConstraint newConstraint, int agentToReplan)
+        public CFMCbsNode(CFMCbsNode father, CFMCbsConstraint newConstraint, int agentToReplan)
         {
             this.agentToReplan = agentToReplan;
             mamPlan = null;
@@ -150,7 +150,7 @@ namespace CPF_experiment
         /// <param name="father"></param>
         /// <param name="mergeGroupA"></param>
         /// <param name="mergeGroupB"></param>
-        public CbsNode(CbsNode father, int mergeGroupA, int mergeGroupB)
+        public CFMCbsNode(CFMCbsNode father, int mergeGroupA, int mergeGroupB)
         {
             mamPlan = null;
             mamCost = -1;
@@ -186,20 +186,20 @@ namespace CPF_experiment
         public bool Solve()
         {
             this.totalCost = 0;
-            MAM_ProblemInstance problem = this.cbs.GetProblemInstance();
-            HashSet<CbsConstraint> newConstraints = this.GetConstraints(); // Probably empty as this is probably the root of the CT.
+            ProblemInstance problem = this.cbs.GetProblemInstance();
+            HashSet<CFMCbsConstraint> newConstraints = this.GetConstraints(); // Probably empty as this is probably the root of the CT.
 
             // Constraints initiated with the problem instance
             //var constraints = (HashSet_U<CbsConstraint>)problem.parameters[MAPF_CBS.CONSTRAINTS];
 
-            var constraints = new HashSet_U<CbsConstraint>();
+            var constraints = new HashSet_U<CFMCbsConstraint>();
 
 
             Dictionary<int, int> agentsWithConstraints = null;
             if (constraints.Count != 0)
             {
-                int maxConstraintTimeStep = constraints.Max<CbsConstraint>(constraint => constraint.time);
-                agentsWithConstraints = constraints.Select<CbsConstraint, int>(constraint => constraint.agentNum).Distinct().ToDictionary<int, int>(x => x); // ToDictionary because there's no ToSet...
+                int maxConstraintTimeStep = constraints.Max<CFMCbsConstraint>(constraint => constraint.time);
+                agentsWithConstraints = constraints.Select<CFMCbsConstraint, int>(constraint => constraint.agentNum).Distinct().ToDictionary<int, int>(x => x); // ToDictionary because there's no ToSet...
             }
 
 
@@ -230,9 +230,9 @@ namespace CPF_experiment
             return true;
         }
 
-        private List<CbsConflict> gatherConflicts()
+        private List<CFMCbsConflict> gatherConflicts()
         {
-            nodeConflicts = new List<CbsConflict>();
+            nodeConflicts = new List<CFMCbsConflict>();
             List<List<Move>> locationsList = this.mamPlan.listOfLocations;
             int maxPathLength = locationsList.Max(list => list.Count);
             for (int timeStamp = 0; timeStamp < maxPathLength - 1; timeStamp++)
@@ -244,7 +244,7 @@ namespace CPF_experiment
                     {
                         Move agentMove = locationsList[agentMoveIndex][timeStamp];
                         if (agentLocationsInTimeStamp.ContainsKey(agentMove))
-                            nodeConflicts.Add(new CbsConflict(agentMoveIndex, agentLocationsInTimeStamp[agentMove], agentMove, agentMove, timeStamp, timeStamp, timeStamp));
+                            nodeConflicts.Add(new CFMCbsConflict(agentMoveIndex, agentLocationsInTimeStamp[agentMove], agentMove, agentMove, timeStamp, timeStamp, timeStamp));
                         else
                             agentLocationsInTimeStamp[agentMove] = agentMoveIndex;
                     }
@@ -253,10 +253,10 @@ namespace CPF_experiment
             return nodeConflicts;
         }
 
-        private HashSet<MMStarConstraint> importCBSConstraintsToMMStarConstraints(HashSet_U<CbsConstraint> constraints)
+        private HashSet<MMStarConstraint> importCBSConstraintsToMMStarConstraints(HashSet_U<CFMCbsConstraint> constraints)
         {
             HashSet<MMStarConstraint> mConstraints = new HashSet<MMStarConstraint>();
-            foreach (CbsConstraint constraint in constraints)
+            foreach (CFMCbsConstraint constraint in constraints)
                 mConstraints.Add(new MMStarConstraint(constraint));
             return mConstraints;
         }
@@ -465,7 +465,7 @@ namespace CPF_experiment
         /// <summary>
         /// Used to preserve state of conflict iteration.
         /// </summary>
-        private IEnumerator<CbsConflict> nextConflicts;
+        private IEnumerator<CFMCbsConflict> nextConflicts;
 
         /// <summary>
         /// The iterator holds the state of the generator, with all the different queues etc - a lot of memory.
@@ -507,7 +507,7 @@ namespace CPF_experiment
         /// <param name="bConflictingGroupMemberIndex"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        private CbsConflict FindConflict(int aConflictingGroupMemberIndex, int bConflictingGroupMemberIndex, int time,
+        private CFMCbsConflict FindConflict(int aConflictingGroupMemberIndex, int bConflictingGroupMemberIndex, int time,
                                          ISet<int>[] groups = null, int time2 = -1)
         {
             // TODO: Reimplement
@@ -543,7 +543,7 @@ namespace CPF_experiment
             b = bConflictingGroupMemberIndex;
         }
 
-        public CbsConflict GetConflict()
+        public CFMCbsConflict GetConflict()
         {
             return this.conflict;
         }
@@ -563,9 +563,9 @@ namespace CPF_experiment
                     ans += Constants.PRIMES_FOR_HASHING[i % Constants.PRIMES_FOR_HASHING.Length] * agentsGroupAssignment[i];
                 }
 
-                HashSet<CbsConstraint> constraints = this.GetConstraints();
+                HashSet<CFMCbsConstraint> constraints = this.GetConstraints();
 
-                foreach (CbsConstraint constraint in constraints)
+                foreach (CFMCbsConstraint constraint in constraints)
                 {
                     ans += constraint.GetHashCode();
                 }
@@ -581,16 +581,16 @@ namespace CPF_experiment
         /// <returns></returns>
         public override bool Equals(object obj) 
         {
-            CbsNode other = (CbsNode)obj;
+            CFMCbsNode other = (CFMCbsNode)obj;
 
             if (this.agentsGroupAssignment.SequenceEqual<ushort>(other.agentsGroupAssignment) == false)
                 return false;
 
-            CbsNode current = this;
-            HashSet<CbsConstraint> other_constraints = other.GetConstraints();
-            HashSet<CbsConstraint> constraints = this.GetConstraints();
+            CFMCbsNode current = this;
+            HashSet<CFMCbsConstraint> other_constraints = other.GetConstraints();
+            HashSet<CFMCbsConstraint> constraints = this.GetConstraints();
 
-            foreach (CbsConstraint constraint in constraints)
+            foreach (CFMCbsConstraint constraint in constraints)
             {
                 if (other_constraints.Contains(constraint) == false)
                     return false;
@@ -612,14 +612,14 @@ namespace CPF_experiment
 
         public int CompareTo(IBinaryHeapItem item)
         {
-            CbsNode other = (CbsNode)item;
+            CFMCbsNode other = (CFMCbsNode)item;
 
 
             return (int)(this.mamCost - other.mamCost);
         }
 
 
-        public int CompareToIgnoreH(CbsNode other, bool ignorePartialExpansion = false)
+        public int CompareToIgnoreH(CFMCbsNode other, bool ignorePartialExpansion = false)
         {
             // Tie breaking:
 
@@ -660,16 +660,16 @@ namespace CPF_experiment
         /// Not used.
         /// </summary>
         /// <returns></returns>
-        public CbsConstraint GetLastConstraint()
+        public CFMCbsConstraint GetLastConstraint()
         {
             return this.constraint;
         }
 
-        public HashSet<CbsConstraint> GetConstraints()
+        public HashSet<CFMCbsConstraint> GetConstraints()
         {
-            var constraints = new HashSet<CbsConstraint>();
-            CbsNode current = this;
-            CbsConstraint currentConstraint = null;
+            var constraints = new HashSet<CFMCbsConstraint>();
+            CFMCbsNode current = this;
+            CFMCbsConstraint currentConstraint = null;
 
             while (current.depth > 0) // The root has no constraints
             {
@@ -686,7 +686,7 @@ namespace CPF_experiment
                     
                     currentConstraint = current.constraint;
                     TimedMove     currentMove       = current.constraint.move;
-                    CbsConstraint newConstraint = new CbsConstraint(currentConstraint.agentNum, currentMove.x, currentMove.y, currentMove.direction, currentMove.time);
+                    CFMCbsConstraint newConstraint = new CFMCbsConstraint(currentConstraint.agentNum, currentMove.x, currentMove.y, currentMove.direction, currentMove.time);
                     constraints.Add(newConstraint);
                     
                 current = current.prev;
@@ -694,7 +694,7 @@ namespace CPF_experiment
             return constraints;
         }
 
-        private bool isLeftNode(CbsNode node)
+        private bool isLeftNode(CFMCbsNode node)
         {
             if (node.prev == null || node.agentToReplan == node.prev.conflict.agentAIndex)
                 return true;
@@ -705,10 +705,10 @@ namespace CPF_experiment
         /// For printing
         /// </summary>
         /// <returns></returns>
-        public List<CbsConstraint> GetConstraintsOrdered()
+        public List<CFMCbsConstraint> GetConstraintsOrdered()
         {
-            var constraints = new List<CbsConstraint>();
-            CbsNode current = this;
+            var constraints = new List<CFMCbsConstraint>();
+            CFMCbsNode current = this;
             while (current.depth > 0) // The root has no constraints
             {
                 if (current.constraint != null && // Next check not enough if "surprise merges" happen (merges taken from adopted child)

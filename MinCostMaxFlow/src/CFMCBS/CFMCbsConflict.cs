@@ -1,7 +1,7 @@
 ﻿
 namespace CPF_experiment
 {
-    public class CbsConflict
+    public class CFMCbsConflict
     {
         public int agentAIndex; // Agent index and not agent num since this class is only used to represent internal conflicts
         public int agentBIndex;
@@ -16,7 +16,7 @@ namespace CPF_experiment
         public bool vertex;
         //public bool guaranteedCardinal;
 
-        public CbsConflict(int conflictingAgentAIndex, int conflictingAgentBIndex, Move agentAMove, Move agentBMove, int timeStep, int timeStepAgentA = -1, int timeStepAgentB = -1)
+        public CFMCbsConflict(int conflictingAgentAIndex, int conflictingAgentBIndex, Move agentAMove, Move agentBMove, int timeStep, int timeStepAgentA = -1, int timeStepAgentB = -1)
         {
             this.agentAIndex = conflictingAgentAIndex;
             this.agentBIndex = conflictingAgentBIndex;
@@ -39,26 +39,26 @@ namespace CPF_experiment
 
         public override bool Equals(object obj)
         {
-            if (this.agentAIndex != ((CbsConflict)obj).agentAIndex)
+            if (this.agentAIndex != ((CFMCbsConflict)obj).agentAIndex)
                 return false;
-            if (this.agentBIndex != ((CbsConflict)obj).agentBIndex)
+            if (this.agentBIndex != ((CFMCbsConflict)obj).agentBIndex)
                 return false;
-            if (this.vertex != ((CbsConflict)obj).vertex)
+            if (this.vertex != ((CFMCbsConflict)obj).vertex)
                 return false;
-            if (this.timeStep != ((CbsConflict)obj).timeStep)
+            if (this.timeStep != ((CFMCbsConflict)obj).timeStep)
                 return false;
             if (this.vertex)
             { // Compare dests, ignore directions. Enough to compare one agent's move because the other is colliding with it.
-                if (this.agentAmove.x != ((CbsConflict)obj).agentAmove.x)
+                if (this.agentAmove.x != ((CFMCbsConflict)obj).agentAmove.x)
                     return false;
-                if (this.agentAmove.y != ((CbsConflict)obj).agentAmove.y)
+                if (this.agentAmove.y != ((CFMCbsConflict)obj).agentAmove.y)
                     return false;
             }
             else
             { // Compare dests and directions (unless direction is NO_DIRECTION)
-                if (this.agentAmove.Equals(((CbsConflict)obj).agentAmove) == false)
+                if (this.agentAmove.Equals(((CFMCbsConflict)obj).agentAmove) == false)
                     return false;
-                if (this.agentBmove.Equals(((CbsConflict)obj).agentBmove) == false)
+                if (this.agentBmove.Equals(((CFMCbsConflict)obj).agentBmove) == false)
                     return false;
             }               
             return true;

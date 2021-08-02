@@ -174,7 +174,7 @@ namespace CPF_experiment
         /// <param name="agentsNum"></param>
         /// <param name="obstaclesNum"></param>
         /// <returns></returns>
-        public MAM_ProblemInstance GenerateProblemInstance
+        public ProblemInstance GenerateProblemInstance
         (
             int gridSize,
             int agentsNum,
@@ -222,8 +222,8 @@ namespace CPF_experiment
                 }
             }
 
-            MAM_ProblemInstance problem = new MAM_ProblemInstance();
-            problem = new MAM_ProblemInstance();
+            ProblemInstance problem = new ProblemInstance();
+            problem = new ProblemInstance();
             problem.Init(aStart, grid);
             return problem;
         }
@@ -237,7 +237,7 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="agentsNum"></param>
         /// <returns></returns>
-        public MAM_ProblemInstance GenerateDragonAgeProblemInstance
+        public ProblemInstance GenerateDragonAgeProblemInstance
         (
             string mapFileName,
             int agentsNum
@@ -301,8 +301,8 @@ namespace CPF_experiment
                 }
             }
 
-            MAM_ProblemInstance problem = new MAM_ProblemInstance();
-            problem.parameters[MAM_ProblemInstance.GRID_NAME_KEY] = Path.GetFileNameWithoutExtension(mapFileName);
+            ProblemInstance problem = new ProblemInstance();
+            problem.parameters[ProblemInstance.GRID_NAME_KEY] = Path.GetFileNameWithoutExtension(mapFileName);
             problem.Init(aStart, grid);
 
             return problem;
@@ -319,7 +319,7 @@ namespace CPF_experiment
         /// <param name="instance">The instance to solve</param>
         public bool SolveGivenProblem
         (
-            MAM_ProblemInstance instance,
+            ProblemInstance instance,
             HashSet<MMStarConstraint> constraints = null
         )
         {
@@ -404,7 +404,7 @@ namespace CPF_experiment
         private void run
         (
             MAM_ISolver solver,
-            MAM_ProblemInstance instance,
+            ProblemInstance instance,
             HashSet<MMStarConstraint> constraints = null
         )
         {
@@ -483,7 +483,7 @@ namespace CPF_experiment
         /// <param name="runtimeInMillis">The time it took the given solver to solve the given instance</param>
         private void PrintStatistics
         (
-            MAM_ProblemInstance instance,
+            ProblemInstance instance,
             MAM_ISolver solver,
             double runtimeInMillis
         )
@@ -506,12 +506,12 @@ namespace CPF_experiment
 
         private void PrintProblemStatistics
         (
-            MAM_ProblemInstance instance
+            ProblemInstance instance
         )
         {
             // Grid Name col:
-            if (instance.parameters.ContainsKey(MAM_ProblemInstance.GRID_NAME_KEY))
-                this.resultsWriter.Write(instance.parameters[MAM_ProblemInstance.GRID_NAME_KEY] + RESULTS_DELIMITER);
+            if (instance.parameters.ContainsKey(ProblemInstance.GRID_NAME_KEY))
+                this.resultsWriter.Write(instance.parameters[ProblemInstance.GRID_NAME_KEY] + RESULTS_DELIMITER);
             else
                 this.resultsWriter.Write(RESULTS_DELIMITER);
             // Grid Rows col:
@@ -575,7 +575,7 @@ namespace CPF_experiment
         /// <param name="instance">The instance to execute</param>
         public void WriteGivenProblem
         (
-            MAM_ProblemInstance instance,
+            ProblemInstance instance,
             MAM_ISolver solver,
             MAM_Plan currentPlan = null)
         {

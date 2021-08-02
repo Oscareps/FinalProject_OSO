@@ -11,7 +11,7 @@ namespace CPF_experiment
     /// - The grid in which the agents are located
     /// - An array of initial state for every agent.
     /// </summary>
-    public class MAM_ProblemInstance
+    public class ProblemInstance
     {
         public enum CostFunction { Makespan, SOC };
         public CostFunction costFunction = CostFunction.SOC;
@@ -51,7 +51,7 @@ namespace CPF_experiment
         private int nOfLocations;
 
 
-        public MAM_ProblemInstance
+        public ProblemInstance
         (
             IDictionary<String, Object> parameters = null
         )
@@ -94,9 +94,9 @@ namespace CPF_experiment
                 m_nLocations = (uint)nLocations;
         }
 
-        public MAM_ProblemInstance ReplanProblem(MAM_AgentState[] newStartStates)
+        public ProblemInstance ReplanProblem(MAM_AgentState[] newStartStates)
         {
-            MAM_ProblemInstance instanceCopy = new MAM_ProblemInstance(this.parameters);
+            ProblemInstance instanceCopy = new ProblemInstance(this.parameters);
             instanceCopy.Init(newStartStates, this.m_vGrid, this.nOfObstacles, this.nOfLocations);
             return instanceCopy;
         }
@@ -139,7 +139,7 @@ namespace CPF_experiment
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public static MAM_ProblemInstance Import
+        public static ProblemInstance Import
         (
             string fileName
         )
@@ -208,11 +208,11 @@ namespace CPF_experiment
             }
 
             // Generate the problem instance
-            MAM_ProblemInstance instance = new MAM_ProblemInstance();
+            ProblemInstance instance = new ProblemInstance();
             instance.fileName = fileName;
             instance.instanceId = instanceId;
             instance.Init(states, grid);
-            instance.parameters[MAM_ProblemInstance.GRID_NAME_KEY] = gridName;
+            instance.parameters[ProblemInstance.GRID_NAME_KEY] = gridName;
             return instance;
         }
 
@@ -228,8 +228,8 @@ namespace CPF_experiment
             String[] pathElements = { Directory.GetCurrentDirectory(), "MAM_Instances", fileName };
             TextWriter output = new StreamWriter(Path.Combine(pathElements));
             // Output the instance ID
-            if (this.parameters.ContainsKey(MAM_ProblemInstance.GRID_NAME_KEY))
-                output.WriteLine(this.instanceId.ToString() + "," + this.parameters[MAM_ProblemInstance.GRID_NAME_KEY]);
+            if (this.parameters.ContainsKey(ProblemInstance.GRID_NAME_KEY))
+                output.WriteLine(this.instanceId.ToString() + "," + this.parameters[ProblemInstance.GRID_NAME_KEY]);
             else
                 output.WriteLine(this.instanceId);
 
@@ -302,18 +302,18 @@ namespace CPF_experiment
         public override string ToString()
         {
             string str = "Problem instance:" + instanceId;
-            if (this.parameters.ContainsKey(MAM_ProblemInstance.GRID_NAME_KEY))
-                str += " Grid Name:" + this.parameters[MAM_ProblemInstance.GRID_NAME_KEY];
+            if (this.parameters.ContainsKey(ProblemInstance.GRID_NAME_KEY))
+                str += " Grid Name:" + this.parameters[ProblemInstance.GRID_NAME_KEY];
             str += " #Agents:" + m_vAgents.Length + ", GridCells:" + m_nLocations + ", #Obstacles:" + m_nObstacles;
             return str;
         }
 
-        public MAM_ProblemInstance CreateSubProblem
+        public ProblemInstance CreateSubProblem
         (
             MAM_AgentState[] agentStartStates
         )
         {
-            MAM_ProblemInstance newProblemInstance = new MAM_ProblemInstance();
+            ProblemInstance newProblemInstance = new ProblemInstance();
             newProblemInstance.Init(agentStartStates, this.m_vGrid, (int)this.m_nObstacles, (int)this.m_nLocations);
             return newProblemInstance;
         }
