@@ -79,6 +79,13 @@ namespace CPF_experiment
 
         public bool solved;
 
+        /// <summary>
+        /// Indicates the starting time in ms for timing the different algorithms.
+        /// </summary>
+        private double startTime;
+
+        public double elapsedTime;
+
         public bool isSolved()
         {
             return this.solved;
@@ -90,8 +97,9 @@ namespace CPF_experiment
             this.closedList = new Dictionary<CFMCbsNode, CFMCbsNode>();
             this.openList = new CFMCBS_OpenList(this);
             this.solved = false;
+            this.watch = Stopwatch.StartNew();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -155,6 +163,7 @@ namespace CPF_experiment
         {
             this.openList.Clear();
             this.closedList.Clear();
+            this.solved = false;
             //this.solver.Clear();
             // Statistics are reset on Setup.
         }
@@ -299,11 +308,11 @@ namespace CPF_experiment
                 initialEstimate = ((CFMCbsNode)openList.Peek()).totalCost;
 
             int currentCost = -1;
-
+            this.startTime = this.ElapsedMillisecondsTotal();
             while (openList.Count > 0)
             {
                 // Check if max time has been exceeded
-                if (runner.ElapsedMilliseconds() > Constants.MAX_TIME)
+                if (this.ElapsedMilliseconds() > Constants.MAX_TIME)
                 {
                     this.totalCost = Constants.TIMEOUT_COST;
                     Console.WriteLine("Out of time");
@@ -591,6 +600,17 @@ namespace CPF_experiment
         public int GetAccumulatedExpanded() { return accHLExpanded; }
         public int GetAccumulatedGenerated() { return accHLGenerated; }
         public int GetMaxGroupSize() { return this.maxSizeGroup; }
+
+        private Stopwatch watch;
+        private double ElapsedMillisecondsTotal()
+        {
+            return this.watch.Elapsed.TotalMilliseconds;
+        }
+
+        public double ElapsedMilliseconds()
+        {
+            return ElapsedMillisecondsTotal() - this.startTime;
+        }
     }
     
 }

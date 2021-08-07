@@ -288,7 +288,15 @@ namespace CPF_experiment
             }
             else
             {
-                throw new Exception("Inconsist Cost");
+                if (CFMcost == Constants.TIMEOUT_COST || CBScost == Constants.TIMEOUT_COST)
+                {
+                    Debug.WriteLine("---------------- TimeOut! CBS cost:   " + CBScost + " CFM cost: " + CFMcost + " -----------------------");
+                }
+                else
+                {
+                    throw new Exception("Inconsist Cost");
+
+                }
             }
 
             return true;

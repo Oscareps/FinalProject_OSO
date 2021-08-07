@@ -5,7 +5,7 @@ namespace CPF_experiment
     {
 
         //public static int MAX_TIME = 600000;
-        public static int MAX_TIME = int.MaxValue;
+        public static int MAX_TIME = 250000;
 
         public static long MCMF_MAX_TIME = 10000;
         
