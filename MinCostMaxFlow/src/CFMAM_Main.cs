@@ -8,7 +8,7 @@ namespace CFMAM.src
     public class CFMAM_Main
     {
         static int INSTANCES_NUM = 10;
-        static string OUTPUT_FOLDER = "/Users/shaharfreiman/Desktop/Degree/Final Project/output";
+        static string OUTPUT_FOLDER = ""; 
 
         // Solvers definition on createSolvers function
         static List<IMS_ISolver> IMSSolvers = new List<IMS_ISolver>();
@@ -42,7 +42,7 @@ namespace CFMAM.src
             {
                 // string[] daoMapFilenames = { "den502d.map", "ost003d.map", "brc202d.map" ,kiva.map};
 
-                String[] daoMapFilenames = { "kiva.map" };
+                String[] daoMapFilenames = { "kiva.map","den312d.map" };
 
                 /* string[] daoMapFilenames = {  "dao_maps\\Berlin_0_256.map",
                                                                         "dao_maps\\Berlin_0_512.map",
