@@ -288,7 +288,16 @@ namespace CPF_experiment
             }
             else
             {
-                throw new Exception("Inconsist Cost");
+                if(CFMcost == Constants.TIMEOUT_COST || CBScost == Constants.TIMEOUT_COST)
+                {
+                    Debug.WriteLine("---------------- TimeOut! CBS cost:   " + CBScost + " CFM cost: " + CFMcost + " -----------------------");
+                }
+                else
+                {
+                    throw new Exception("Inconsist Cost");
+
+                }
+
             }
 
             return true;
@@ -471,7 +480,7 @@ namespace CPF_experiment
             }
             else
             {
-                Console.WriteLine("Failed to solve");
+                Console.WriteLine("Failed to solve CBS");
             }
             Console.WriteLine();
             Console.WriteLine("Expanded nodes: {0}", solver.GetExpanded());
