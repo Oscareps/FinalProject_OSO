@@ -268,8 +268,8 @@ namespace CPF_experiment
                         instanceName = Path.GetFileNameWithoutExtension(mapFileName) + "-" + agentListSizes[ag] + "-" + i;
                         try
                         {
-                            String[] path = { Directory.GetCurrentDirectory(), instanceName };
-                            instance = ProblemInstance.Import(Path.Combine(pathElements));
+                            String[] path = { Directory.GetCurrentDirectory(), mapsFolder, instanceName };
+                            instance = ProblemInstance.Import(Path.Combine(path));
                         }
                         catch (Exception importException)
                         {
